@@ -88,3 +88,6 @@ class CompanyService:
             A list of dictionaries, each containing company details.
         """
         return self.market_provider.search_companies(query)
+    
+    def get_financials(self, symbol: str):
+        return self.market_provider.get_financials(symbol)

@@ -72,3 +72,34 @@ class YahooMarketDataProvider(MarketDataProvider):
             "open": response.get("o"),
             "previous_close": response.get("pc"),
         }
+    
+    def get_financials(self, symbol: str):
+        response = self.http.get(
+            f"{self.BASE_URL}/stock/financials-reported",
+            params={
+                "symbol": symbol,
+                "token": self.api_key,
+            },
+        )
+
+        reports = response.get("data", [])
+
+        if not reports:
+            return {
+                "income_statement": {},
+                "balance_sheet": {},
+                "cash_flow": {},
+            }
+
+        latest = reports[0]
+
+        return {
+            "symbol": symbol,
+            "access_number": latest.get("accessNumber"),
+            "fiscal_year": latest.get("fiscalYear"),
+            "fiscal_period": latest.get("fiscalPeriod"),
+            "report_date": latest.get("endDate"),
+            "income_statement": latest.get("report", {}).get("ic", []),
+            "balance_sheet": latest.get("report", {}).get("bs", []),
+            "cash_flow": latest.get("report", {}).get("cf", []),
+        }

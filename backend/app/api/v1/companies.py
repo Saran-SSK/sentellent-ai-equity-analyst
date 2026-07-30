@@ -42,17 +42,7 @@ def search_companies(
     q: Annotated[str, Query(..., description="Search query for company name or symbol")],
     company_service: Annotated[CompanyService, Depends(get_company_service)],
 ) -> list[dict[str, object]]:
-    """Search for companies using market data provider.
-
-    This endpoint searches for companies by name or symbol across external
-    market data sources. It does not query the local database.
-
-    Args:
-        q: Search query string.
-
-    Returns:
-        A list of company profiles matching the search query.
-    """
+    """Search for companies using market data provider."""
     return company_service.search_companies(q)
 
 
@@ -114,23 +104,15 @@ def get_company_profile(
     symbol: str,
     company_service: Annotated[CompanyService, Depends(get_company_service)],
 ) -> dict[str, object]:
-    """Fetch company profile from market data provider.
-
-    This endpoint retrieves basic company information (such as name and symbol)
-    from external market data sources. It does not query the local database.
-
-    Args:
-        symbol: Company ticker symbol (e.g., "AAPL").
-
-    Returns:
-        Company profile data including symbol and name.
-    """
+    """Fetch company profile from market data provider."""
     profile = company_service.fetch_company(symbol)
+
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Company with symbol '{symbol}' not found in market data",
         )
+
     return profile
 
 
@@ -139,21 +121,30 @@ def get_company_quote(
     symbol: str,
     company_service: Annotated[CompanyService, Depends(get_company_service)],
 ) -> dict[str, object]:
-    """Fetch latest market quote for a company.
-
-    This endpoint retrieves the most recent price and change data for a
-    company from external market data sources.
-
-    Args:
-        symbol: Company ticker symbol (e.g., "AAPL").
-
-    Returns:
-        Current quote data including price, change, and currency.
-    """
+    """Fetch latest market quote."""
     quote = company_service.fetch_quote(symbol)
+
     if not quote:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Quote for symbol '{symbol}' not found in market data",
         )
+
     return quote
+
+
+@router.get("/{symbol}/financials")
+def get_company_financials(
+    symbol: str,
+    company_service: Annotated[CompanyService, Depends(get_company_service)],
+) -> dict[str, object]:
+    """Fetch latest reported financial statements."""
+    financials = company_service.get_financials(symbol)
+
+    if not financials:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Financial statements for '{symbol}' not found.",
+        )
+
+    return financials
