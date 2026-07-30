@@ -136,3 +136,66 @@ class YahooMarketDataProvider(MarketDataProvider):
             )
 
         return news
+
+    def get_historical_prices(
+        self,
+        symbol: str,
+        resolution: str,
+        from_timestamp: int,
+        to_timestamp: int,
+    ):
+        function_map = {
+            "D": "TIME_SERIES_DAILY",
+            "W": "TIME_SERIES_WEEKLY",
+            "M": "TIME_SERIES_MONTHLY",
+        }
+
+        function = function_map.get(
+            resolution.upper(),
+            "TIME_SERIES_DAILY",
+        )
+
+        response = self.http.get(
+            "https://www.alphavantage.co/query",
+            params={
+                "function": function,
+                "symbol": symbol,
+                "apikey": settings.alpha_vantage_api_key,
+            },
+        )
+
+        key_map = {
+            "TIME_SERIES_DAILY": "Time Series (Daily)",
+            "TIME_SERIES_WEEKLY": "Weekly Time Series",
+            "TIME_SERIES_MONTHLY": "Monthly Time Series",
+        }
+
+        data_key = key_map[function]
+
+        if data_key not in response:
+            return {}
+
+        timestamps = []
+        open_prices = []
+        high_prices = []
+        low_prices = []
+        close_prices = []
+        volume = []
+
+        for date, values in sorted(response[data_key].items()):
+            timestamps.append(date)
+            open_prices.append(float(values["1. open"]))
+            high_prices.append(float(values["2. high"]))
+            low_prices.append(float(values["3. low"]))
+            close_prices.append(float(values["4. close"]))
+            volume.append(int(values["5. volume"]))
+
+        return {
+            "symbol": symbol,
+            "timestamps": timestamps,
+            "open": open_prices,
+            "high": high_prices,
+            "low": low_prices,
+            "close": close_prices,
+            "volume": volume,
+        }

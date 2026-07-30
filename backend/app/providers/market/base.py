@@ -27,3 +27,13 @@ class MarketDataProvider(ABC):
         to_date: str,
     ):
         pass
+    
+    @abstractmethod
+    def get_historical_prices(
+        self,
+        symbol: str,
+        resolution: str,
+        from_timestamp: int,
+        to_timestamp: int,
+    ):
+        pass

@@ -82,3 +82,18 @@ class CompanyService:
             from_date,
             to_date,
         )
+
+    def get_historical_prices(
+        self,
+        symbol: str,
+        resolution: str,
+        from_timestamp: int,
+        to_timestamp: int,
+    ) -> dict[str, object]:
+        """Fetch historical OHLCV price data."""
+        return self.market_provider.get_historical_prices(
+            symbol,
+            resolution,
+            from_timestamp,
+            to_timestamp,
+        )

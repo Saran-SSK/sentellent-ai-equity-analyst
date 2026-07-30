@@ -39,7 +39,9 @@ def list_companies(
 
 @router.get("/search")
 def search_companies(
-    q: Annotated[str, Query(..., description="Search query for company name or symbol")],
+    q: Annotated[
+        str, Query(..., description="Search query for company name or symbol")
+    ],
     company_service: Annotated[CompanyService, Depends(get_company_service)],
 ) -> list[dict[str, object]]:
     """Search for companies using market data provider."""
@@ -180,3 +182,40 @@ def get_company_news(
         )
 
     return news
+
+
+@router.get("/{symbol}/history")
+def get_historical_prices(
+    symbol: str,
+    resolution: Annotated[
+        str,
+        Query(description="Resolution (1,5,15,30,60,D,W,M)"),
+    ],
+    from_timestamp: Annotated[
+        int,
+        Query(description="Unix start timestamp"),
+    ],
+    to_timestamp: Annotated[
+        int,
+        Query(description="Unix end timestamp"),
+    ],
+    company_service: Annotated[
+        CompanyService,
+        Depends(get_company_service),
+    ],
+) -> dict[str, object]:
+    """Fetch historical OHLCV price data."""
+    history = company_service.get_historical_prices(
+        symbol,
+        resolution,
+        from_timestamp,
+        to_timestamp,
+    )
+
+    if not history:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No historical price data found for '{symbol}'.",
+        )
+
+    return history
