@@ -21,7 +21,6 @@ class Settings(BaseSettings):
         alias="API_VERSION",
     )
     database_url: str = Field(
-        default="sqlite:///./app.db",
         alias="DATABASE_URL",
     )
 
