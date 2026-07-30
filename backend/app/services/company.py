@@ -55,39 +55,30 @@ class CompanyService:
         self.company_repository.delete(company)
 
     def fetch_company(self, symbol: str) -> dict[str, object]:
-        """Fetch company information from the market data provider.
-
-        Args:
-            symbol: The ticker symbol of the company (e.g. ``"AAPL"``).
-
-        Returns:
-            A dictionary containing company details such as ``symbol`` and
-            ``name``.
-        """
+        """Fetch company information from the market data provider."""
         return self.market_provider.get_company(symbol)
 
     def fetch_quote(self, symbol: str) -> dict[str, object]:
-        """Fetch the latest quote for a company from the market data provider.
-
-        Args:
-            symbol: The ticker symbol of the company (e.g. ``"AAPL"``).
-
-        Returns:
-            A dictionary containing quote details such as ``price`` and
-            ``change``.
-        """
+        """Fetch the latest quote for a company."""
         return self.market_provider.get_quote(symbol)
 
     def search_companies(self, query: str) -> list[dict[str, object]]:
-        """Search for companies using the market data provider.
-
-        Args:
-            query: The search term (e.g. ``"Apple"``).
-
-        Returns:
-            A list of dictionaries, each containing company details.
-        """
+        """Search companies from the market data provider."""
         return self.market_provider.search_companies(query)
-    
-    def get_financials(self, symbol: str):
+
+    def get_financials(self, symbol: str) -> dict[str, object]:
+        """Fetch latest financial statements."""
         return self.market_provider.get_financials(symbol)
+
+    def get_company_news(
+        self,
+        symbol: str,
+        from_date: str,
+        to_date: str,
+    ) -> list[dict[str, object]]:
+        """Fetch company news."""
+        return self.market_provider.get_company_news(
+            symbol,
+            from_date,
+            to_date,
+        )

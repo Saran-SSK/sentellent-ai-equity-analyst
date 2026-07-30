@@ -72,7 +72,7 @@ class YahooMarketDataProvider(MarketDataProvider):
             "open": response.get("o"),
             "previous_close": response.get("pc"),
         }
-    
+
     def get_financials(self, symbol: str):
         response = self.http.get(
             f"{self.BASE_URL}/stock/financials-reported",
@@ -103,3 +103,36 @@ class YahooMarketDataProvider(MarketDataProvider):
             "balance_sheet": latest.get("report", {}).get("bs", []),
             "cash_flow": latest.get("report", {}).get("cf", []),
         }
+
+    def get_company_news(
+        self,
+        symbol: str,
+        from_date: str,
+        to_date: str,
+    ):
+        response = self.http.get(
+            f"{self.BASE_URL}/company-news",
+            params={
+                "symbol": symbol,
+                "from": from_date,
+                "to": to_date,
+                "token": self.api_key,
+            },
+        )
+
+        news = []
+
+        for article in response:
+            news.append(
+                {
+                    "headline": article.get("headline"),
+                    "summary": article.get("summary"),
+                    "source": article.get("source"),
+                    "url": article.get("url"),
+                    "image": article.get("image"),
+                    "published_at": article.get("datetime"),
+                    "category": article.get("category"),
+                }
+            )
+
+        return news

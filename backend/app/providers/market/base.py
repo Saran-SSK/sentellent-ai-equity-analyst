@@ -18,3 +18,12 @@ class MarketDataProvider(ABC):
     @abstractmethod
     def get_financials(self, symbol: str):
         pass
+
+    @abstractmethod
+    def get_company_news(
+        self,
+        symbol: str,
+        from_date: str,
+        to_date: str,
+    ):
+        pass

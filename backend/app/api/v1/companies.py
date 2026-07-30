@@ -148,3 +148,35 @@ def get_company_financials(
         )
 
     return financials
+
+
+@router.get("/{symbol}/news")
+def get_company_news(
+    symbol: str,
+    from_date: Annotated[
+        str,
+        Query(description="Start date in YYYY-MM-DD format"),
+    ],
+    to_date: Annotated[
+        str,
+        Query(description="End date in YYYY-MM-DD format"),
+    ],
+    company_service: Annotated[
+        CompanyService,
+        Depends(get_company_service),
+    ],
+) -> list[dict[str, object]]:
+    """Fetch company news from the market data provider."""
+    news = company_service.get_company_news(
+        symbol,
+        from_date,
+        to_date,
+    )
+
+    if not news:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No news found for '{symbol}'.",
+        )
+
+    return news
