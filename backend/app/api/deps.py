@@ -7,6 +7,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.db.database import SessionLocal
+from app.providers.market.provider import get_market_provider
 from app.repositories.company import CompanyRepository
 from app.repositories.user import UserRepository
 from app.services.company import CompanyService
@@ -38,4 +39,5 @@ def get_user_service(
 def get_company_service(
     company_repository: Annotated[CompanyRepository, Depends(get_company_repository)],
 ) -> CompanyService:
-    return CompanyService(company_repository)
+    market_provider = get_market_provider()
+    return CompanyService(company_repository, market_provider)
