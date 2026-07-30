@@ -70,3 +70,19 @@ class UserNotFoundError(DomainError):
     def __init__(self, user_id: int | None = None) -> None:
         self.user_id = user_id
         super().__init__("User not found")
+
+
+class CompanyAlreadyExistsError(DomainError):
+    """Raised when attempting to create a company with an existing symbol."""
+
+    def __init__(self, symbol: str) -> None:
+        self.symbol = symbol
+        super().__init__("A company with this symbol already exists")
+
+
+class CompanyNotFoundError(DomainError):
+    """Raised when a requested company does not exist."""
+
+    def __init__(self, company_id: int | None = None) -> None:
+        self.company_id = company_id
+        super().__init__("Company not found")
