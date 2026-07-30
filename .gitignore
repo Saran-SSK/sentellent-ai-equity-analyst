@@ -12,7 +12,10 @@ frontend/out/
 # Environment
 .env
 .env.local
-.env.*
+.env.development
+.env.production
+.env.test
+!.env.example
 
 # IDE
 .vscode/
