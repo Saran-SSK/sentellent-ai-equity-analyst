@@ -25,7 +25,7 @@ class UserRepository:
         statement = select(User).where(User.email == email)
         return self.session.execute(statement).scalar_one_or_none()
 
-    def list_user(self, skip: int = 0, limit: int = 100) -> list[User]:
+    def list_users(self, skip: int = 0, limit: int = 100) -> list[User]:
         statement = select(User).offset(skip).limit(limit)
         return list(self.session.execute(statement).scalars().all())
 
@@ -64,6 +64,7 @@ class UserRepository:
         writable_fields = {
             "email",
             "full_name",
+            "hashed_password",
             "is_active",
             "is_superuser",
         }
