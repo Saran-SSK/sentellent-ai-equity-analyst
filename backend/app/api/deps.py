@@ -11,8 +11,36 @@ from app.providers.market.base import MarketDataProvider
 from app.providers.market.provider import get_market_provider
 from app.repositories.company import CompanyRepository
 from app.repositories.user import UserRepository
+from app.repositories.watchlist import WatchlistRepository
+from app.repositories.portfolio import PortfolioRepository
+from app.repositories.holding import HoldingRepository
 from app.services.company import CompanyService
 from app.services.user import UserService
+from app.services.watchlist import WatchlistService
+from app.services.portfolio import PortfolioService
+from app.services.holding import HoldingService
+
+
+def get_watchlist_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> WatchlistRepository:
+    return WatchlistRepository(db)
+
+
+def get_watchlist_service(
+    watchlist_repository: Annotated[
+        WatchlistRepository,
+        Depends(get_watchlist_repository),
+    ],
+    company_repository: Annotated[
+        CompanyRepository,
+        Depends(get_company_repository),
+    ],
+) -> WatchlistService:
+    return WatchlistService(
+        watchlist_repository,
+        company_repository,
+    )
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -40,7 +68,9 @@ def get_user_repository(db: Annotated[Session, Depends(get_db)]) -> UserReposito
     return UserRepository(db)
 
 
-def get_company_repository(db: Annotated[Session, Depends(get_db)]) -> CompanyRepository:
+def get_company_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> CompanyRepository:
     """Dependency that creates a CompanyRepository instance.
 
     Args:
@@ -78,7 +108,9 @@ def get_user_service(
 
 def get_company_service(
     company_repository: Annotated[CompanyRepository, Depends(get_company_repository)],
-    market_provider: Annotated[MarketDataProvider, Depends(get_market_provider_dependency)],
+    market_provider: Annotated[
+        MarketDataProvider, Depends(get_market_provider_dependency)
+    ],
 ) -> CompanyService:
     """Dependency that creates a CompanyService instance.
 
@@ -90,3 +122,79 @@ def get_company_service(
         A CompanyService configured with the provided repository and market provider.
     """
     return CompanyService(company_repository, market_provider)
+
+
+def get_portfolio_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> PortfolioRepository:
+    """Dependency that creates a PortfolioRepository instance.
+
+    Args:
+        db: Injected database session.
+
+    Returns:
+        A PortfolioRepository bound to the current session.
+    """
+    return PortfolioRepository(db)
+
+
+def get_holding_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> HoldingRepository:
+    """Dependency that creates a HoldingRepository instance.
+
+    Args:
+        db: Injected database session.
+
+    Returns:
+        A HoldingRepository bound to the current session.
+    """
+    return HoldingRepository(db)
+
+
+def get_portfolio_service(
+    portfolio_repository: Annotated[
+        PortfolioRepository,
+        Depends(get_portfolio_repository),
+    ],
+) -> PortfolioService:
+    """Dependency that creates a PortfolioService instance.
+
+    Args:
+        portfolio_repository: Injected PortfolioRepository.
+
+    Returns:
+        A PortfolioService configured with the provided repository.
+    """
+    return PortfolioService(portfolio_repository)
+
+
+def get_holding_service(
+    holding_repository: Annotated[
+        HoldingRepository,
+        Depends(get_holding_repository),
+    ],
+    portfolio_repository: Annotated[
+        PortfolioRepository,
+        Depends(get_portfolio_repository),
+    ],
+    company_repository: Annotated[
+        CompanyRepository,
+        Depends(get_company_repository),
+    ],
+) -> HoldingService:
+    """Dependency that creates a HoldingService instance.
+
+    Args:
+        holding_repository: Injected HoldingRepository.
+        portfolio_repository: Injected PortfolioRepository.
+        company_repository: Injected CompanyRepository.
+
+    Returns:
+        A HoldingService configured with the provided repositories.
+    """
+    return HoldingService(
+        holding_repository,
+        portfolio_repository,
+        company_repository,
+    )

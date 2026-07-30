@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from app.core.exceptions import UserAlreadyExistsError, UserNotFoundError
 from app.core import security
+from app.core.exceptions import UserAlreadyExistsError, UserNotFoundError
 from app.models.user import User
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserUpdate
@@ -19,7 +19,10 @@ class UserService:
             raise UserAlreadyExistsError(str(user.email))
 
         hashed_password = security.hash_password(user.password)
-        return self.user_repository.create(user=user, hashed_password=hashed_password)
+        return self.user_repository.create(
+            user=user,
+            hashed_password=hashed_password,
+        )
 
     def get_user(self, id: int) -> User:
         user = self.user_repository.get_by_id(id)
@@ -32,11 +35,20 @@ class UserService:
         return self.user_repository.get_by_email(email)
 
     def authenticate_user(self, email: str, password: str) -> User | None:
+        print("Email received:", repr(email))
+
         user = self.user_repository.get_by_email(email)
-        if user is None or user.hashed_password is None:
+        print("User found:", user)
+
+        if user is None:
             return None
 
-        if not security.verify_password(password, user.hashed_password):
+        print("Stored hash:", user.hashed_password)
+
+        ok = security.verify_password(password, user.hashed_password)
+        print("Password verified:", ok)
+
+        if not ok:
             return None
 
         return user
@@ -52,7 +64,10 @@ class UserService:
         if password is not None:
             update_data["hashed_password"] = security.hash_password(password)
 
-        return self.user_repository.update(user=user, updates=update_data)
+        return self.user_repository.update(
+            user=user,
+            updates=update_data,
+        )
 
     def delete_user(self, id: int) -> None:
         user = self.get_user(id)

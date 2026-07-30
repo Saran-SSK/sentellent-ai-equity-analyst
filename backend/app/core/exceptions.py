@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from pydantic import BaseModel
 
 
@@ -56,6 +54,11 @@ class DomainError(Exception):
     """Base exception for domain-level errors."""
 
 
+# ----------------------------------------------------------------------
+# User
+# ----------------------------------------------------------------------
+
+
 class UserAlreadyExistsError(DomainError):
     """Raised when attempting to create a user with an existing email."""
 
@@ -72,6 +75,11 @@ class UserNotFoundError(DomainError):
         super().__init__("User not found")
 
 
+# ----------------------------------------------------------------------
+# Company
+# ----------------------------------------------------------------------
+
+
 class CompanyAlreadyExistsError(DomainError):
     """Raised when attempting to create a company with an existing symbol."""
 
@@ -86,3 +94,68 @@ class CompanyNotFoundError(DomainError):
     def __init__(self, company_id: int | None = None) -> None:
         self.company_id = company_id
         super().__init__("Company not found")
+
+
+# ----------------------------------------------------------------------
+# Watchlist
+# ----------------------------------------------------------------------
+
+
+class WatchlistNotFoundError(DomainError):
+    """Raised when a watchlist cannot be found."""
+
+    def __init__(self, watchlist_id: int | None = None) -> None:
+        self.watchlist_id = watchlist_id
+        super().__init__("Watchlist not found")
+
+
+class WatchlistAccessDeniedError(DomainError):
+    """Raised when a user tries to access another user's watchlist."""
+
+    def __init__(self) -> None:
+        super().__init__("You do not have permission to access this watchlist")
+
+
+class CompanyAlreadyInWatchlistError(DomainError):
+    """Raised when attempting to add the same company twice."""
+
+    def __init__(self, symbol: str) -> None:
+        self.symbol = symbol
+        super().__init__("Company already exists in watchlist")
+
+
+class CompanyNotInWatchlistError(DomainError):
+    """Raised when removing a company that is not present."""
+
+    def __init__(self, symbol: str) -> None:
+        self.symbol = symbol
+        super().__init__("Company not found in watchlist")
+
+
+# ----------------------------------------------------------------------
+# Portfolio
+# ----------------------------------------------------------------------
+
+
+class PortfolioNotFoundError(DomainError):
+    """Raised when a portfolio cannot be found."""
+
+    def __init__(self, portfolio_id: int | None = None) -> None:
+        self.portfolio_id = portfolio_id
+        super().__init__("Portfolio not found")
+
+
+class HoldingNotFoundError(DomainError):
+    """Raised when a holding cannot be found."""
+
+    def __init__(self, holding_id: int | None = None) -> None:
+        self.holding_id = holding_id
+        super().__init__("Holding not found")
+
+
+class HoldingAlreadyExistsError(DomainError):
+    """Raised when attempting to add a holding that already exists."""
+
+    def __init__(self, company_id: int) -> None:
+        self.company_id = company_id
+        super().__init__("Holding already exists in portfolio")
