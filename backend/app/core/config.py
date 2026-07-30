@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     database_url: str = Field(default="sqlite:///./app.db", alias="DATABASE_URL")
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    secret_key: str = Field(default="change-me-in-production", alias="SECRET_KEY")
+    access_token_expire_minutes: int = Field(default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
 

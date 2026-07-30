@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from passlib.context import CryptContext
-
 from app.core.exceptions import UserAlreadyExistsError, UserNotFoundError
+from app.core import security
 from app.models.user import User
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserUpdate
@@ -10,8 +9,6 @@ from app.schemas.user import UserCreate, UserUpdate
 
 class UserService:
     """Business operations for users."""
-
-    _password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def __init__(self, user_repository: UserRepository) -> None:
         self.user_repository = user_repository
@@ -21,7 +18,7 @@ class UserService:
         if existing_user is not None:
             raise UserAlreadyExistsError(str(user.email))
 
-        hashed_password = self._hash_password(user.password)
+        hashed_password = security.hash_password(user.password)
         return self.user_repository.create(user=user, hashed_password=hashed_password)
 
     def get_user(self, id: int) -> User:
@@ -34,6 +31,16 @@ class UserService:
     def get_user_by_email(self, email: str) -> User | None:
         return self.user_repository.get_by_email(email)
 
+    def authenticate_user(self, email: str, password: str) -> User | None:
+        user = self.user_repository.get_by_email(email)
+        if user is None or user.hashed_password is None:
+            return None
+
+        if not security.verify_password(password, user.hashed_password):
+            return None
+
+        return user
+
     def list_users(self, skip: int = 0, limit: int = 100) -> list[User]:
         return self.user_repository.list_users(skip=skip, limit=limit)
 
@@ -43,13 +50,10 @@ class UserService:
 
         password = update_data.pop("password", None)
         if password is not None:
-            update_data["hashed_password"] = self._hash_password(password)
+            update_data["hashed_password"] = security.hash_password(password)
 
         return self.user_repository.update(user=user, updates=update_data)
 
     def delete_user(self, id: int) -> None:
         user = self.get_user(id)
         self.user_repository.delete(user)
-
-    def _hash_password(self, password: str) -> str:
-        return self._password_context.hash(password)
