@@ -7,12 +7,13 @@ from fastapi.security import OAuth2PasswordBearer
 
 from app.api.deps import get_user_service
 from app.core import security
+from app.core.google_oauth import GoogleOAuthError, get_google_user_info
 from app.core.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
 )
 from app.models.user import User
-from app.schemas.auth import LoginRequest, Token
+from app.schemas.auth import GoogleAuthRequest, LoginRequest, Token
 from app.schemas.user import UserCreate, UserRead
 from app.services.user import UserService
 
@@ -54,6 +55,36 @@ def login_user(
 
     access_token = security.create_access_token(subject=str(user.id))
     return Token(access_token=access_token)
+
+
+@router.post("/google", response_model=Token)
+def google_auth(
+    request: GoogleAuthRequest,
+    user_service: Annotated[UserService, Depends(get_user_service)],
+) -> Token:
+    """Authenticate with Google OAuth ID token."""
+    try:
+        # Verify the Google ID token and extract user info
+        google_user_info = get_google_user_info(request.id_token)
+        
+        # Create or get the user
+        user = user_service.get_or_create_google_user(
+            google_id=google_user_info["google_id"],
+            email=google_user_info["email"],
+            full_name=google_user_info["full_name"],
+            google_avatar_url=google_user_info["google_avatar_url"],
+        )
+        
+        # Create JWT token
+        access_token = security.create_access_token(subject=str(user.id))
+        return Token(access_token=access_token)
+        
+    except GoogleOAuthError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
 
 
 async def get_current_user(

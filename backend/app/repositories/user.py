@@ -25,15 +25,24 @@ class UserRepository:
         statement = select(User).where(User.email == email)
         return self.session.execute(statement).scalar_one_or_none()
 
+    def get_by_google_id(self, google_id: str) -> User | None:
+        statement = select(User).where(User.google_id == google_id)
+        return self.session.execute(statement).scalar_one_or_none()
+
     def list_users(self, skip: int = 0, limit: int = 100) -> list[User]:
         statement = select(User).offset(skip).limit(limit)
         return list(self.session.execute(statement).scalars().all())
 
-    def create(self, user: UserCreate, hashed_password: str) -> User:
-        db_user = User(
-            **user.model_dump(exclude={"password"}),
-            hashed_password=hashed_password,
-        )
+    def create(self, user: UserCreate | None = None, hashed_password: str | None = None, **kwargs) -> User:
+        """Create a user. Can be called with UserCreate schema or with keyword arguments for OAuth."""
+        if user:
+            db_user = User(
+                **user.model_dump(exclude={"password"}),
+                hashed_password=hashed_password,
+            )
+        else:
+            db_user = User(**kwargs)
+        
         self.session.add(db_user)
         self.session.commit()
         self.session.refresh(db_user)
@@ -67,5 +76,7 @@ class UserRepository:
             "hashed_password",
             "is_active",
             "is_superuser",
+            "google_id",
+            "google_avatar_url",
         }
         return {key: value for key, value in data.items() if key in writable_fields}

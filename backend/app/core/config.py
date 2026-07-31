@@ -64,5 +64,10 @@ class Settings(BaseSettings):
         alias="LOG_LEVEL",
     )
 
+    google_oauth_client_id: str | None = Field(
+        default=None,
+        alias="GOOGLE_OAUTH_CLIENT_ID",
+    )
+
 
 settings = Settings()
