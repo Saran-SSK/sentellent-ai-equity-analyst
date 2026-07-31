@@ -32,6 +32,14 @@ class Settings(BaseSettings):
         default=None,
         alias="OPENAI_API_KEY",
     )
+    qdrant_url: str | None = Field(
+        default=None,
+        alias="QDRANT_URL",
+    )
+    qdrant_api_key: str | None = Field(
+        default=None,
+        alias="QDRANT_API_KEY",
+    )
 
     finnhub_api_key: str = Field(
         alias="FINNHUB_API_KEY",

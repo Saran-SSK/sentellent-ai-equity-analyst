@@ -1,0 +1,510 @@
+# Company Alias Mappings
+# This file maps company name aliases to their canonical ticker symbols.
+# Format: alias: canonical_ticker
+# 
+# Add new companies by adding entries in the format:
+# "company name alias": "TICKER"
+
+# Apple Inc.
+apple: AAPL
+apple inc: AAPL
+apple inc.: AAPL
+apple corporation: AAPL
+
+# Microsoft Corporation
+microsoft: MSFT
+microsoft corporation: MSFT
+microsoft corp: MSFT
+microsoft corp.: MSFT
+
+# Alphabet Inc. (Google)
+google: GOOGL
+alphabet: GOOGL
+alphabet inc: GOOGL
+alphabet inc.: GOOGL
+alphabet corporation: GOOGL
+
+# Nvidia Corporation
+nvidia: NVDA
+nvidia corporation: NVDA
+nvidia corp: NVDA
+
+# Tesla Inc.
+tesla: TSLA
+tesla inc: TSLA
+tesla motors: TSLA
+
+# Amazon.com Inc.
+amazon: AMZN
+amazon.com: AMZN
+amazon.com inc: AMZN
+
+# Meta Platforms Inc.
+meta: META
+meta platforms: META
+facebook: META
+
+# Berkshire Hathaway Inc.
+berkshire hathaway: BRK.B
+berkshire: BRK.B
+
+# Johnson & Johnson
+johnson & johnson: JNJ
+jnj: JNJ
+
+# JPMorgan Chase & Co.
+jpmorgan: JPM
+jpmorgan chase: JPM
+jpmorgan chase & co: JPM
+
+# Visa Inc.
+visa: V
+
+# Procter & Gamble Co.
+procter & gamble: PG
+p&g: PG
+
+# UnitedHealth Group Inc.
+unitedhealth: UNH
+unitedhealth group: UNH
+
+# Mastercard Inc.
+mastercard: MA
+
+# Eli Lilly and Co.
+eli lilly: LLY
+lilly: LLY
+
+# Broadcom Inc.
+broadcom: AVGO
+
+# Exxon Mobil Corp.
+exxon mobil: XOM
+exxon: XOM
+
+# Chevron Corp.
+chevron: CVX
+
+# Oracle Corp.
+oracle: ORCL
+
+# Adobe Inc.
+adobe: ADBE
+
+# Salesforce Inc.
+salesforce: CRM
+
+# Netflix Inc.
+netflix: NFLX
+
+# Walt Disney Co.
+walt disney: DIS
+disney: DIS
+
+# Intel Corp.
+intel: INTC
+
+# Cisco Systems Inc.
+cisco: CSCO
+
+# IBM
+ibm: IBM
+international business machines: IBM
+
+# Coca-Cola Co.
+coca cola: KO
+coke: KO
+
+# PepsiCo Inc.
+pepsico: PEP
+pepsi: PEP
+
+# Nike Inc.
+nike: NKE
+
+# McDonald's Corp.
+mcdonalds: MCD
+mcdonald: MCD
+
+# Starbucks Corp.
+starbucks: SBUX
+
+# Home Depot Inc.
+home depot: HD
+
+# Lowe's Companies Inc.
+lowes: LOW
+lowe's: LOW
+
+# Walmart Inc.
+walmart: WMT
+
+# Costco Wholesale Corp.
+costco: COST
+
+# Target Corp.
+target: TGT
+
+# Boeing Co.
+boeing: BA
+
+# Lockheed Martin Corp.
+lockheed martin: L MT
+
+# General Electric Co.
+general electric: GE
+ge: GE
+
+# 3M Co.
+3m: MMM
+
+# Honeywell International Inc.
+honeywell: HON
+
+# United Parcel Service Inc.
+ups: UPS
+
+# FedEx Corp.
+fedex: FDX
+
+# AT&T Inc.
+at&t: T
+
+# Verizon Communications Inc.
+verizon: VZ
+
+# Comcast Corp.
+comcast: CMCSA
+
+# Charter Communications Inc.
+charter: CHTR
+
+# T-Mobile US Inc.
+t-mobile: TMUS
+t mobile: TMUS
+
+# Bank of America Corp.
+bank of america: BAC
+bofa: BAC
+
+# Wells Fargo & Co.
+wells fargo: WFC
+
+# Goldman Sachs Group Inc.
+goldman sachs: GS
+
+# Morgan Stanley
+morgan stanley: MS
+
+# BlackRock Inc.
+blackrock: BLK
+
+# Charles Schwab Corp.
+charles schwab: SCHW
+
+# PayPal Holdings Inc.
+paypal: PYPL
+
+# Block Inc.
+block: SQ
+square: SQ
+
+# Shopify Inc.
+shopify: SHOP
+
+# Snowflake Inc.
+snowflake: SNOW
+
+# CrowdStrike Holdings Inc.
+crowdstrike: CRWD
+
+# Palantir Technologies Inc.
+palantir: PLTR
+
+# Robinhood Markets Inc.
+robinhood: HOOD
+
+# Coinbase Global Inc.
+coinbase: COIN
+
+# Uber Technologies Inc.
+uber: UBER
+
+# Lyft Inc.
+lyft: LYFT
+
+# DoorDash Inc.
+doordash: DASH
+
+# Airbnb Inc.
+airbnb: ABNB
+
+# Spotify Technology SA
+spotify: SPOT
+
+# Zoom Video Communications Inc.
+zoom: ZM
+
+# Slack Technologies (now Salesforce)
+slack: WORK
+
+# Twitter (now X)
+twitter: TWTR
+x: X
+
+# Reddit Inc.
+reddit: RDDT
+
+# Pinterest Inc.
+pinterest: PINS
+
+# Snap Inc.
+snap: SNAP
+
+# DocuSign Inc.
+docusign: DOCU
+
+# Square (now Block)
+square: SQ
+
+# WeWork Inc.
+wework: WE
+
+# Peloton Interactive Inc.
+peloton: PTON
+
+# Beyond Meat Inc.
+beyond meat: BYND
+
+# Rivian Automotive Inc.
+rivian: RIVN
+
+# Lucid Group Inc.
+lucid: LCID
+
+# Fisker Inc.
+fisker: FSR
+
+# Canoo Inc.
+canoo: GOEV
+
+# Nikola Corp.
+nikola: NKLA
+
+# Lordstown Motors
+lordstown: RIDE
+
+# Hertz Global Holdings
+hertz: HTZ
+
+# Avis Budget Group
+avis: CAR
+
+# Dollar Tree Inc.
+dollar tree: DLTR
+
+# Dollar General Corp.
+dollar general: DG
+
+# Five Below Inc.
+five below: FIVE
+
+# TJX Companies Inc.
+tjx: TJX
+
+# Ross Stores Inc.
+ross stores: ROST
+
+# Burlington Stores Inc.
+burlington: BURL
+
+# Gap Inc.
+gap: GPS
+
+# L Brands Inc.
+l brands: LB
+
+# Victoria's Secret (now L Brands)
+victoria's secret: LB
+
+# Abercrombie & Fitch Co.
+abercrombie: ANF
+
+# American Eagle Outfitters Inc.
+american eagle: AEO
+
+# Urban Outfitters Inc.
+urban outfitters: URBN
+
+# Foot Locker Inc.
+foot locker: FL
+
+# Dick's Sporting Goods Inc.
+dick's sporting goods: DKS
+
+# Hibbett Sports Inc.
+hibbett sports: HIBB
+
+# Big 5 Sporting Goods
+big 5: BGFV
+
+# Academy Sports and Outdoors
+academy sports: ASO
+
+# Bass Pro Shops
+bass pro shops: PRIV
+
+# Cabela's (now Bass Pro)
+cabela's: PRIV
+
+# REI (private)
+rei: N/A
+
+# Patagonia (private)
+patagonia: N/A
+
+# North Face (part of VF Corp)
+north face: VFC
+
+# VF Corp
+vf corp: VFC
+
+# Levi Strauss & Co.
+levi strauss: LEVI
+
+# Under Armour Inc.
+under armour: UAA
+
+# Skechers U.S.A. Inc.
+skechers: SKX
+
+# Crocs Inc.
+crocs: CROX
+
+# Deckers Outdoor Corp.
+deckers: DECK
+
+# Wolverine World Wide Inc.
+wolverine: WWW
+
+# Brown Shoe Co.
+brown shoe: BWS
+
+# Caleres Inc.
+caleres: CAL
+
+# Footwear etc.
+footwear etc: N/A
+
+# Zappos (part of Amazon)
+zappos: AMZN
+
+# Revolve Group Inc.
+revolve: RVLV
+
+# Stitch Fix Inc.
+stitch fix: SFIX
+
+# Rent the Runway (private)
+rent the runway: RENT
+
+# ThredUp Inc.
+thredup: TDUP
+
+# Poshmark Inc.
+poshmark: POSH
+
+# The RealReal Inc.
+therealreal: REAL
+
+# Etsy Inc.
+etsy: ETSY
+
+# Wayfair Inc.
+wayfair: W
+
+# Overstock.com (now Beyond)
+overstock: BYON
+
+# Bed Bath & Beyond (bankrupt)
+bed bath & beyond: BBBY
+
+# Williams-Sonoma Inc.
+williams-sonoma: WSM
+
+# Crate & Barrel (private)
+crate & barrel: N/A
+
+# Pottery Barn (part of Williams-Sonoma)
+pottery barn: WSM
+
+# West Elm (part of Williams-Sonoma)
+west elm: WSM
+
+# Restoration Hardware (RH)
+restoration hardware: RH
+
+# Ethan Allen Interiors Inc.
+ethan allen: ETD
+
+# La-Z-Boy Incorporated
+la-z-boy: LZB
+
+# Herman Miller (now MillerKnoll)
+herman miller: MLKN
+
+# Steelcase Inc.
+steelcase: SCS
+
+# HNI Corp.
+hni: HNI
+
+# Knoll Inc. (now MillerKnoll)
+knoll: MLKN
+
+# Haworth Inc. (private)
+haworth: N/A
+
+# Kimball International Inc.
+kimball: KBAL
+
+# Flexsteel Industries Inc.
+flexsteel: FLXS
+
+# American Woodmark Corp.
+american woodmark: AMWD
+
+# Masco Corp.
+masco: MAS
+
+# Fortune Brands Home & Security
+fortune brands: FBHS
+
+# Mohawk Industries Inc.
+mohawk: MHK
+
+# Interface Inc.
+interface: TILE
+
+# Shaw Industries (private)
+shaw industries: N/A
+
+# Tarkett S.A. (private)
+tarkett: N/A
+
+# Armstrong World Industries Inc.
+armstrong: AWI
+
+# Floor & Decor Holdings Inc.
+floor & decor: FND
+
+# Lumber Liquidators Holdings Inc.
+lumber liquidators: LL
+
+# Tile Shop Holdings Inc.
+tile shop: TTS
+
+# Home Depot (already listed above)
+# Lowe's (already listed above)
+
+# Additional companies can be added as needed
