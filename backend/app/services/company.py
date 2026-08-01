@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from sqlalchemy.exc import IntegrityError
+
 from app.core.exceptions import CompanyAlreadyExistsError, CompanyNotFoundError
 from app.models.company import Company
 from app.providers.market.base import MarketDataProvider
@@ -35,6 +37,46 @@ class CompanyService:
     def get_company_by_symbol(self, symbol: str) -> Company | None:
         return self.company_repository.get_by_symbol(symbol.upper())
 
+    def get_or_create_company(self, symbol: str) -> Company:
+        """Get company by symbol or create it from market data if it doesn't exist."""
+        normalized_symbol = symbol.strip().upper()
+        
+        # Try to get existing company
+        company = self.company_repository.get_by_symbol(normalized_symbol)
+        if company is not None:
+            return company
+        
+        # Fetch from market data provider
+        market_data = self.market_provider.get_company(normalized_symbol)
+        if not market_data:
+            raise CompanyNotFoundError(f"Company with symbol '{normalized_symbol}' not found in market data")
+        
+        # Create company from market data
+        from app.schemas.company import CompanyCreate
+        company_create = CompanyCreate(
+            symbol=normalized_symbol,
+            name=market_data.get("name", ""),
+            exchange=market_data.get("exchange") or None,
+            sector=market_data.get("sector") or None,
+            industry=market_data.get("industry") or None,
+            country=market_data.get("country") or None,
+            currency=market_data.get("currency") or None,
+            description=market_data.get("description") or None,
+            website=market_data.get("website") or None,
+        )
+        
+        try:
+            return self.company_repository.create(company_create)
+        except IntegrityError:
+            # Race condition: another request inserted the company
+            # Roll back the session and re-query
+            self.company_repository.session.rollback()
+            company = self.company_repository.get_by_symbol(normalized_symbol)
+            if company is not None:
+                return company
+            # If still not found after rollback, raise the original error
+            raise
+
     def list_companies(self, skip: int = 0, limit: int = 100) -> list[Company]:
         return self.company_repository.list_companies(skip=skip, limit=limit)
 
@@ -55,8 +97,18 @@ class CompanyService:
         self.company_repository.delete(company)
 
     def fetch_company(self, symbol: str) -> dict[str, object]:
-        """Fetch company information from the market data provider."""
-        return self.market_provider.get_company(symbol)
+        """Fetch company information from the market data provider with database id."""
+        # Ensure company exists in database
+        company = self.get_or_create_company(symbol)
+        
+        # Fetch market data
+        market_data = self.market_provider.get_company(symbol)
+        if not market_data:
+            return {"id": company.id, "symbol": symbol, "name": company.name}
+        
+        # Add database id to market data
+        market_data["id"] = company.id
+        return market_data
 
     def fetch_quote(self, symbol: str) -> dict[str, object]:
         """Fetch the latest quote for a company."""

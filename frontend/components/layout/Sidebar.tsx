@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Bookmark,
   Briefcase,
+  Building2,
   Newspaper,
   BookOpen,
   Settings,
@@ -25,6 +26,7 @@ export default function Sidebar() {
     { href: "/ai", icon: MessageSquare, label: "AI Assistant" },
     { href: "/watchlists", icon: Bookmark, label: "Watchlists" },
     { href: "/portfolio", icon: Briefcase, label: "Portfolio" },
+    { href: "/companies", icon: Building2, label: "Companies" },
     { href: "/market-news", icon: Newspaper, label: "Market News" },
     { href: "/research", icon: BookOpen, label: "Research" },
   ];

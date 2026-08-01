@@ -230,9 +230,9 @@ export default function PortfolioPage() {
         /* Portfolios Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {portfolios.map((portfolio) => (
-            <div key={portfolio.id} className="card-base group">
+            <Link key={portfolio.id} href={`/portfolio/${portfolio.id}`} className="card-base group hover:border-primary/30 transition-colors">
               <div className="flex items-start justify-between mb-4">
-                <div>
+                <div className="flex-1">
                   <h3 className="text-lg font-semibold text-text-primary">
                     {portfolio.name}
                   </h3>
@@ -242,13 +242,19 @@ export default function PortfolioPage() {
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => openRenameModal(portfolio)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openRenameModal(portfolio);
+                    }}
                     className="p-2 text-text-tertiary hover:text-primary transition-colors"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDeletePortfolio(portfolio.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDeletePortfolio(portfolio.id);
+                    }}
                     className="p-2 text-text-tertiary hover:text-danger transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -293,7 +299,7 @@ export default function PortfolioPage() {
                   +{portfolio.holdings.length - 5} more holdings
                 </p>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       )}

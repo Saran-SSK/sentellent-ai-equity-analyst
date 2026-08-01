@@ -44,24 +44,26 @@ export default function NewsCard({ article }: NewsCardProps) {
           <span>{formatDate(article.publishedAt)}</span>
         </div>
 
-        <Badge
-          variant={
-            article.sentiment === "positive"
-              ? "success"
-              : article.sentiment === "negative"
-                ? "danger"
-                : "info"
-          }
-          size="sm"
-        >
-          {article.sentiment.charAt(0).toUpperCase() + article.sentiment.slice(1)}
-        </Badge>
+        {article.sentiment && (
+          <Badge
+            variant={
+              article.sentiment === "positive"
+                ? "success"
+                : article.sentiment === "negative"
+                  ? "danger"
+                  : "info"
+            }
+            size="sm"
+          >
+            {article.sentiment.charAt(0).toUpperCase() + article.sentiment.slice(1)}
+          </Badge>
+        )}
       </div>
 
-      {article.companies.length > 0 && (
+      {article.companies && article.companies.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-border">
-          {article.companies.map((company) => (
-            <Badge key={company} size="sm">
+          {article.companies.map((company: string, index: number) => (
+            <Badge key={`${company}-${index}`} size="sm">
               {company}
             </Badge>
           ))}
