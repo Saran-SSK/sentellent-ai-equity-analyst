@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react"
 export default function SignInPage() {
   const handleGoogleSignIn = () => {
     // Trigger Google OAuth with direct redirect
-    signIn("google", { callbackUrl: "/auth/callback" })
+    signIn("google", { callbackUrl: "/callback" })
   }
 
   return (
