@@ -1,40 +1,128 @@
 "use client";
 
-import { useState } from "react";
-import { Settings as SettingsIcon, Save } from "lucide-react";
-import { useToast } from "@/hooks/useToast";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Settings as SettingsIcon, Save, Loader2 } from "lucide-react";
+
+interface InvestorProfile {
+  id: number;
+  user_id: number;
+  risk_profile: string | null;
+  investment_horizon: string | null;
+  investment_style: string | null;
+  preferred_market: string | null;
+  preferred_sectors: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function SettingsPage() {
-  const { toast } = useToast();
-  const [settings, setSettings] = useState({
-    theme: "dark",
-    currency: "INR",
-    notifications: {
-      enabled: true,
-      priceAlerts: true,
-      newsDigest: true,
-    },
-    security: {
-      twoFactorEnabled: false,
-    },
+  const router = useRouter();
+  const [profile, setProfile] = useState<InvestorProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState({
+    risk_profile: "",
+    investment_horizon: "",
+    investment_style: "",
+    preferred_market: "",
+    preferred_sectors: "",
+    notes: "",
   });
 
-  const handleToggle = (path: string) => {
-    setSettings((prev) => {
-      const keys = path.split(".");
-      const newSettings = JSON.parse(JSON.stringify(prev));
-      let current = newSettings;
-      for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
-      }
-      current[keys[keys.length - 1]] = !current[keys[keys.length - 1]];
-      return newSettings;
-    });
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("access_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
   };
 
-  const handleSave = () => {
-    toast("Settings saved successfully", { type: "success" });
+  const fetchProfile = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${backendUrl}/api/v1/investor-profile`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 401) {
+        router.push("/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch investor profile");
+      }
+
+      const data: InvestorProfile = await response.json();
+      setProfile(data);
+      setFormData({
+        risk_profile: data.risk_profile || "",
+        investment_horizon: data.investment_horizon || "",
+        investment_style: data.investment_style || "",
+        preferred_market: data.preferred_market || "",
+        preferred_sectors: data.preferred_sectors || "",
+        notes: data.notes || "",
+      });
+    } catch (err) {
+      setError("Failed to load investor profile");
+      console.error("Error fetching profile:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setError(null);
+      setSuccessMessage(null);
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${backendUrl}/api/v1/investor-profile`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(formData),
+      });
+
+      if (response.status === 401) {
+        router.push("/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to save investor profile");
+      }
+
+      const data: InvestorProfile = await response.json();
+      setProfile(data);
+      setSuccessMessage("Investor profile saved successfully");
+      
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      setError("Failed to save investor profile");
+      console.error("Error saving profile:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-8">
@@ -42,216 +130,157 @@ export default function SettingsPage() {
       <div>
         <div className="flex items-center gap-3 mb-2">
           <SettingsIcon className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl font-bold text-text-primary">Settings</h1>
+          <h1 className="text-3xl font-bold text-text-primary">Investor Profile</h1>
         </div>
         <p className="text-text-tertiary">
-          Manage your account and application preferences
+          Configure your investment preferences for personalized AI analysis
         </p>
       </div>
 
-      {/* Display Settings */}
-      <div className="card-base">
-        <h2 className="text-xl font-semibold text-text-primary mb-6">
-          Display
-        </h2>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-text-primary">Theme</p>
-              <p className="text-sm text-text-tertiary">
-                Choose your preferred color scheme
-              </p>
-            </div>
-            <select
-              value={settings.theme}
-              onChange={(e) =>
-                setSettings({ ...settings, theme: e.target.value })
-              }
-              className="input-base w-32"
-            >
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
-          </div>
-
-          <div className="border-t border-border pt-4 flex items-center justify-between">
-            <div>
-              <p className="font-medium text-text-primary">Currency</p>
-              <p className="text-sm text-text-tertiary">
-                Display prices in your preferred currency
-              </p>
-            </div>
-            <select
-              value={settings.currency}
-              onChange={(e) =>
-                setSettings({ ...settings, currency: e.target.value })
-              }
-              className="input-base w-32"
-            >
-              <option value="INR">₹ INR</option>
-              <option value="USD">$ USD</option>
-            </select>
-          </div>
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-error/10 border border-error text-error px-4 py-3 rounded-lg">
+          {error}
         </div>
-      </div>
+      )}
 
-      {/* Notification Settings */}
-      <div className="card-base">
-        <h2 className="text-xl font-semibold text-text-primary mb-6">
-          Notifications
-        </h2>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-text-primary">
-                Enable Notifications
-              </p>
-              <p className="text-sm text-text-tertiary">
-                Receive push notifications for important updates
-              </p>
-            </div>
-            <button
-              onClick={() => handleToggle("notifications.enabled")}
-              className={`relative w-14 h-8 rounded-full transition-colors ${
-                settings.notifications.enabled ? "bg-success" : "bg-border"
-              }`}
-            >
-              <div
-                className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                  settings.notifications.enabled ? "translate-x-7" : "translate-x-1"
-                }`}
-              />
-            </button>
-          </div>
-
-          {settings.notifications.enabled && (
-            <>
-              <div className="border-t border-border pt-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-text-primary">Price Alerts</p>
-                  <p className="text-sm text-text-tertiary">
-                    Get notified when stock prices hit your targets
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleToggle("notifications.priceAlerts")}
-                  className={`relative w-14 h-8 rounded-full transition-colors ${
-                    settings.notifications.priceAlerts
-                      ? "bg-success"
-                      : "bg-border"
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                      settings.notifications.priceAlerts
-                        ? "translate-x-7"
-                        : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <div className="border-t border-border pt-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-text-primary">News Digest</p>
-                  <p className="text-sm text-text-tertiary">
-                    Receive daily market news digest
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleToggle("notifications.newsDigest")}
-                  className={`relative w-14 h-8 rounded-full transition-colors ${
-                    settings.notifications.newsDigest
-                      ? "bg-success"
-                      : "bg-border"
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                      settings.notifications.newsDigest
-                        ? "translate-x-7"
-                        : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-            </>
-          )}
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-success/10 border border-success text-success px-4 py-3 rounded-lg">
+          {successMessage}
         </div>
-      </div>
+      )}
 
-      {/* Security Settings */}
+      {/* Investor Profile Form */}
       <div className="card-base">
         <h2 className="text-xl font-semibold text-text-primary mb-6">
-          Security
+          Investment Preferences
         </h2>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-text-primary">
-                Two-Factor Authentication
-              </p>
-              <p className="text-sm text-text-tertiary">
-                Add an extra layer of security to your account
-              </p>
-            </div>
-            <button
-              onClick={() => handleToggle("security.twoFactorEnabled")}
-              className={`relative w-14 h-8 rounded-full transition-colors ${
-                settings.security.twoFactorEnabled ? "bg-success" : "bg-border"
-              }`}
-            >
-              <div
-                className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                  settings.security.twoFactorEnabled
-                    ? "translate-x-7"
-                    : "translate-x-1"
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="border-t border-border pt-4">
-            <button className="btn-secondary w-full">
-              Change Password
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Account Settings */}
-      <div className="card-base">
-        <h2 className="text-xl font-semibold text-text-primary mb-6">
-          Account
-        </h2>
-
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
-            <p className="text-sm text-text-tertiary mb-2">Email</p>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Risk Profile
+            </label>
+            <select
+              value={formData.risk_profile}
+              onChange={(e) =>
+                setFormData({ ...formData, risk_profile: e.target.value })
+              }
+              className="input-base w-full"
+            >
+              <option value="">Select risk profile</option>
+              <option value="Conservative">Conservative</option>
+              <option value="Moderate">Moderate</option>
+              <option value="Aggressive">Aggressive</option>
+              <option value="Very Aggressive">Very Aggressive</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Investment Horizon
+            </label>
+            <select
+              value={formData.investment_horizon}
+              onChange={(e) =>
+                setFormData({ ...formData, investment_horizon: e.target.value })
+              }
+              className="input-base w-full"
+            >
+              <option value="">Select investment horizon</option>
+              <option value="Short Term">Short Term (&lt; 1 year)</option>
+              <option value="Medium Term">Medium Term (1-3 years)</option>
+              <option value="Long Term">Long Term (3-5 years)</option>
+              <option value="Very Long Term">Very Long Term (5+ years)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Investment Style
+            </label>
+            <select
+              value={formData.investment_style}
+              onChange={(e) =>
+                setFormData({ ...formData, investment_style: e.target.value })
+              }
+              className="input-base w-full"
+            >
+              <option value="">Select investment style</option>
+              <option value="Value">Value Investing</option>
+              <option value="Growth">Growth Investing</option>
+              <option value="Dividend">Dividend Investing</option>
+              <option value="Index">Index Fund</option>
+              <option value="Technical">Technical Analysis</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Preferred Market
+            </label>
             <input
-              type="email"
-              value="john@email.com"
-              disabled
-              className="input-base opacity-50"
+              type="text"
+              value={formData.preferred_market}
+              onChange={(e) =>
+                setFormData({ ...formData, preferred_market: e.target.value })
+              }
+              placeholder="e.g., NSE, NYSE, NASDAQ"
+              className="input-base w-full"
             />
           </div>
 
-          <div className="border-t border-border pt-4 space-y-3">
-            <button className="btn-secondary w-full">Download Your Data</button>
-            <button className="btn-danger w-full">Delete Account</button>
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Preferred Sectors
+            </label>
+            <input
+              type="text"
+              value={formData.preferred_sectors}
+              onChange={(e) =>
+                setFormData({ ...formData, preferred_sectors: e.target.value })
+              }
+              placeholder="e.g., IT, Banking, Healthcare (comma-separated)"
+              className="input-base w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-primary mb-2">
+              Notes
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
+              placeholder="Any additional investment preferences or constraints..."
+              rows={4}
+              className="input-base w-full resize-none"
+            />
           </div>
         </div>
       </div>
 
       {/* Save Button */}
-      <div className="flex items-center justify-end gap-3">
-        <button className="btn-secondary">Cancel</button>
-        <button onClick={handleSave} className="btn-primary flex items-center gap-2">
-          <Save className="w-4 h-4" />
-          Save Changes
+      <div className="flex items-center justify-end">
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              Save Profile
+            </>
+          )}
         </button>
       </div>
     </div>

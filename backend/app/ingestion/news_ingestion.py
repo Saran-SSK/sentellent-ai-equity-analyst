@@ -6,6 +6,7 @@ from typing import Any
 import requests
 from langchain_core.documents import Document
 
+from app.agents.news_analysis import NewsAnalysisAgent
 from app.ingestion.text_splitter import text_splitter
 from app.ingestion.company_ingestion import company_ingestion_service
 from app.providers.finnhub_provider import finnhub_provider
@@ -14,6 +15,9 @@ from app.utils.company_normalizer import to_canonical_company_id
 
 class NewsIngestionService:
     """Service for ingesting company news articles into the document store."""
+
+    def __init__(self) -> None:
+        self.news_analysis_agent = NewsAnalysisAgent()
 
     def ingest_news(
         self,
@@ -49,6 +53,18 @@ class NewsIngestionService:
         for article in raw_news:
             document_text = self._build_document_text(article)
             metadata = self._build_metadata(article)
+            
+            # Analyze the article to extract structured metadata
+            headline = str(article.get("headline") or "").strip()
+            summary = str(article.get("summary") or "").strip()
+            analysis = self.news_analysis_agent.analyze(headline, summary)
+            
+            # Add analysis results to metadata
+            metadata["sentiment"] = analysis.get("sentiment", "Neutral")
+            metadata["impact"] = analysis.get("impact", "Low")
+            metadata["event_type"] = analysis.get("event_type", "Other")
+            metadata["mentioned_companies"] = analysis.get("mentioned_companies", [])
+            
             documents.append(Document(page_content=document_text, metadata=metadata))
 
         if not documents:

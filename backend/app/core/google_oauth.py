@@ -77,6 +77,10 @@ def verify_google_id_token(token: str) -> dict[str, Any]:
         return id_info
         
     except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        print("GOOGLE ERROR:", exc)
+
         logger.error(f"Failed to verify Google ID token: {exc}")
         raise GoogleOAuthError(f"Failed to verify Google ID token: {exc}") from exc
 

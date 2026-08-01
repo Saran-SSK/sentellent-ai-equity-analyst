@@ -92,7 +92,7 @@ def _is_valid_ticker_format(company: str) -> bool:
     
     Valid ticker symbols:
     - Letters only (A-Z)
-    - Length 1-6 characters
+    - Length 1-12 characters (supports both US and Indian tickers)
     - Uppercase
     
     Args:
@@ -104,8 +104,8 @@ def _is_valid_ticker_format(company: str) -> bool:
     if not company:
         return False
     
-    # Check length (1-6 characters)
-    if len(company) < 1 or len(company) > 6:
+    # Check length (1-12 characters to support Indian tickers like BHARTIARTL)
+    if len(company) < 1 or len(company) > 12:
         return False
     
     # Check if all uppercase letters
@@ -179,7 +179,7 @@ def to_canonical_company_id(company: str) -> str:
     raise ValueError(
         f"Unknown company identifier: '{company}'. "
         f"Please add an alias mapping in company_aliases.yaml or provide a valid ticker symbol. "
-        f"Valid ticker symbols are 1-6 uppercase letters (e.g., AAPL, MSFT, GOOGL)."
+        f"Valid ticker symbols are 1-12 uppercase letters (e.g., AAPL, MSFT, TCS, RELIANCE)."
     )
 
 
@@ -205,7 +205,7 @@ def add_company_alias(alias: str, canonical_ticker: str) -> None:
     if not _is_valid_ticker_format(canonical_ticker.strip().upper()):
         raise ValueError(
             f"Invalid ticker format: '{canonical_ticker}'. "
-            f"Ticker symbols must be 1-6 uppercase letters."
+            f"Ticker symbols must be 1-12 uppercase letters."
         )
     
     # Load aliases first

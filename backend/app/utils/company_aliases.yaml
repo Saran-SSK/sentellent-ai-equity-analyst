@@ -5,6 +5,86 @@
 # Add new companies by adding entries in the format:
 # "company name alias": "TICKER"
 
+# Indian Companies (NSE/BSE)
+
+# Reliance Industries
+reliance: RELIANCE
+reliance industries: RELIANCE
+reliance industries limited: RELIANCE
+ril: RELIANCE
+
+# Tata Consultancy Services
+tcs: TCS
+tata consultancy services: TCS
+tata consult: TCS
+tcs limited: TCS
+
+# Infosys
+infosys: INFY
+infosys limited: INFY
+infy: INFY
+
+# HDFC Bank
+hdfc bank: HDFCBANK
+hdfcbank: HDFCBANK
+housing development finance corporation: HDFCBANK
+
+# ICICI Bank
+icici bank: ICICIBANK
+icicibank: ICICIBANK
+icici: ICICIBANK
+
+# State Bank of India
+sbi: SBIN
+state bank of india: SBIN
+sbin: SBIN
+
+# ITC Limited
+itc: ITC
+itc limited: ITC
+indian tobacco company: ITC
+
+# Larsen & Toubro
+lt: LT
+larsen & toubro: LT
+l&t: LT
+larsen toubro: LT
+
+# Bharti Airtel
+bharti airtel: BHARTIARTL
+airtel: BHARTIARTL
+bhartiartl: BHARTIARTL
+
+# Axis Bank
+axis bank: AXISBANK
+axis: AXISBANK
+
+# Kotak Mahindra Bank
+kotak bank: KOTAKBANK
+kotak mahindra bank: KOTAKBANK
+kotak: KOTAKBANK
+
+# Asian Paints
+asian paints: ASIANPAINT
+asianpaints: ASIANPAINT
+
+# Maruti Suzuki
+maruti: MARUTI
+maruti suzuki: MARUTI
+maruti suzuki india: MARUTI
+
+# Sun Pharmaceutical
+sun pharma: SUNPHARMA
+sun pharmaceutical: SUNPHARMA
+sun pharmaceutical industries: SUNPHARMA
+
+# Titan Company
+titan: TITAN
+titan company: TITAN
+titan industries: TITAN
+
+# US Companies
+
 # Apple Inc.
 apple: AAPL
 apple inc: AAPL

@@ -228,7 +228,14 @@ User Question
         if not sections:
             return ""
 
-        return "\n\n".join(sections) + "\n\n"
+        context_text = "\n\n".join(sections)
+        return f"""================ USER INVESTOR CONTEXT ================
+
+{context_text}
+
+============== END USER INVESTOR CONTEXT ==============
+
+"""
 
     def _get_system_prompt(self, document_type: DocumentType) -> str:
         """Get the appropriate system prompt based on document type."""
@@ -246,6 +253,22 @@ User Question
         """System prompt for annual report analysis."""
         return """
 You are a Senior Equity Research Analyst.
+
+If user investor context is provided, personalize your analysis accordingly.
+
+When answering investment-related questions:
+
+- Consider the user's risk profile.
+- Consider the user's investment horizon.
+- Consider the user's investment style.
+- Consider the user's preferred sectors.
+- Consider the user's existing portfolio and watchlists.
+- If the company does not align with the user's preferences, explicitly explain why.
+- If the company aligns well with the user's preferences, explain why.
+- Mention the user's investor profile only when it materially affects the recommendation.
+- Personalize recommendations while remaining completely grounded in the retrieved documents.
+- Never invent facts that are not present in the retrieved context.
+- Do not ignore the supplied investor context.
 
 Answer ONLY using the retrieved annual report documents.
 
@@ -299,6 +322,22 @@ Rules:
         return """
 You are a Senior Equity Research Analyst.
 
+If user investor context is provided, personalize your analysis accordingly.
+
+When answering investment-related questions:
+
+- Consider the user's risk profile.
+- Consider the user's investment horizon.
+- Consider the user's investment style.
+- Consider the user's preferred sectors.
+- Consider the user's existing portfolio and watchlists.
+- If the company does not align with the user's preferences, explicitly explain why.
+- If the company aligns well with the user's preferences, explain why.
+- Mention the user's investor profile only when it materially affects the recommendation.
+- Personalize recommendations while remaining completely grounded in the retrieved documents.
+- Never invent facts that are not present in the retrieved context.
+- Do not ignore the supplied investor context.
+
 Answer ONLY using the retrieved news articles.
 
 Your response MUST follow EXACTLY this format.
@@ -350,6 +389,22 @@ Rules:
         """System prompt for mixed document analysis."""
         return """
 You are a Senior Equity Research Analyst.
+
+If user investor context is provided, personalize your analysis accordingly.
+
+When answering investment-related questions:
+
+- Consider the user's risk profile.
+- Consider the user's investment horizon.
+- Consider the user's investment style.
+- Consider the user's preferred sectors.
+- Consider the user's existing portfolio and watchlists.
+- If the company does not align with the user's preferences, explicitly explain why.
+- If the company aligns well with the user's preferences, explain why.
+- Mention the user's investor profile only when it materially affects the recommendation.
+- Personalize recommendations while remaining completely grounded in the retrieved documents.
+- Never invent facts that are not present in the retrieved context.
+- Do not ignore the supplied investor context.
 
 Answer using BOTH the retrieved annual reports and news articles.
 

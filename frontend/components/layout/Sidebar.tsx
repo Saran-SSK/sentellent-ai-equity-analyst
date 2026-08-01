@@ -23,7 +23,7 @@ export default function Sidebar() {
 
   const menuItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/ai", icon: MessageSquare, label: "AI Assistant" },
+    { href: "/chat", icon: MessageSquare, label: "AI Chat" },
     { href: "/watchlists", icon: Bookmark, label: "Watchlists" },
     { href: "/portfolio", icon: Briefcase, label: "Portfolio" },
     { href: "/companies", icon: Building2, label: "Companies" },

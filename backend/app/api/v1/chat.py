@@ -4,7 +4,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.deps import get_context_builder
+from app.api.deps import (
+    get_context_builder,
+    get_memory_extractor,
+    get_investor_profile_service,
+)
 from app.api.v1.auth import get_current_user
 from app.models.user import User
 from app.schemas.chat import ChatRequest, ChatResponse
@@ -26,7 +30,19 @@ async def ask_question(
         "app.agents.context_builder.ContextBuilder",
         Depends(get_context_builder),
     ],
+    memory_extractor: Annotated[
+        "app.agents.memory_extractor.MemoryExtractor",
+        Depends(get_memory_extractor),
+    ],
+    investor_profile_service: Annotated[
+        "app.services.investor_profile.InvestorProfileService",
+        Depends(get_investor_profile_service),
+    ],
 ) -> ChatResponse:
     """Ask the equity analyst assistant a question about a company."""
-    chat_service = ChatService(context_builder)
+    chat_service = ChatService(
+        context_builder,
+        memory_extractor,
+        investor_profile_service,
+    )
     return await chat_service.ask(request, current_user.id)

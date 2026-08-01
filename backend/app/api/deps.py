@@ -22,6 +22,7 @@ from app.services.portfolio import PortfolioService
 from app.services.holding import HoldingService
 from app.services.investor_profile import InvestorProfileService
 from app.agents.context_builder import ContextBuilder
+from app.agents.memory_extractor import MemoryExtractor
 
 
 def get_watchlist_repository(
@@ -263,3 +264,12 @@ def get_context_builder(
         portfolio_service,
         watchlist_service,
     )
+
+
+def get_memory_extractor() -> MemoryExtractor:
+    """Dependency that creates a MemoryExtractor instance.
+
+    Returns:
+        A MemoryExtractor instance.
+    """
+    return MemoryExtractor()
