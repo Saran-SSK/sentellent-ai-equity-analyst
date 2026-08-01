@@ -1,220 +1,398 @@
 "use client";
 
-import { useState } from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from "recharts";
-import DataTable, { Column } from "@/components/tables/DataTable";
-import StatCard from "@/components/cards/StatCard";
-import { MOCK_PORTFOLIO } from "@/utils/mockData";
-import { PortfolioHolding } from "@/types";
-import {
-  formatCurrency,
-  formatPercent,
-  getChangeColor,
-  formatNumber,
-} from "@/utils/format";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Loader2, Edit2, X } from "lucide-react";
+import Modal from "@/components/ui/Modal";
+import { formatCurrency, formatDate } from "@/utils/format";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+interface BackendPortfolio {
+  id: number;
+  name: string;
+  holdings: BackendHolding[];
+}
+
+interface BackendHolding {
+  id: number;
+  company_id: number;
+  company_name: string;
+  ticker: string;
+  quantity: number;
+  average_buy_price: number;
+  purchase_date: string;
+}
 
 export default function PortfolioPage() {
-  const portfolio = MOCK_PORTFOLIO;
+  const [portfolios, setPortfolios] = useState<BackendPortfolio[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [selectedPortfolioId, setSelectedPortfolioId] = useState<number | null>(null);
+  const [newPortfolioName, setNewPortfolioName] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  // Chart data for performance
-  const performanceData = [
-    { month: "Jan", value: 550000 },
-    { month: "Feb", value: 580000 },
-    { month: "Mar", value: 600000 },
-    { month: "Apr", value: 620000 },
-    { month: "May", value: 650000 },
-    { month: "Jun", value: 670000 },
-    { month: "Jul", value: 695000 },
-    { month: "Aug", value: 720000 },
-    { month: "Sep", value: 695000 },
-    { month: "Oct", value: 715000 },
-    { month: "Nov", value: 740000 },
-    { month: "Dec", value: 750000 },
-  ];
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("access_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  };
 
-  const columns: Column<PortfolioHolding>[] = [
-    {
-      key: "stock",
-      label: "Stock",
-      render: (value: any) => (
-        <div>
-          <div className="font-semibold text-text-primary">{value.ticker}</div>
-          <div className="text-xs text-text-tertiary">{value.company}</div>
-        </div>
-      ),
-      width: "200px",
-    },
-    {
-      key: "quantity",
-      label: "Quantity",
-      render: (value) => formatNumber(value as number),
-    },
-    {
-      key: "averagePrice",
-      label: "Avg Price",
-      render: (value) => formatCurrency(value as number),
-    },
-    {
-      key: "currentPrice",
-      label: "Current Price",
-      render: (value) => formatCurrency(value as number),
-    },
-    {
-      key: "value",
-      label: "Value",
-      render: (value) => formatCurrency(value as number),
-    },
-    {
-      key: "gainLossPercent",
-      label: "Gain/Loss %",
-      render: (value, row) => (
-        <span className={getChangeColor((row as PortfolioHolding).gainLoss)}>
-          {formatPercent((value as number))}
-        </span>
-      ),
-    },
-  ];
+  const fetchPortfolios = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${backendUrl}/api/v1/portfolios`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 401) {
+        router.push("/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch portfolios");
+      }
+
+      const data: BackendPortfolio[] = await response.json();
+      setPortfolios(data);
+    } catch (err) {
+      setError("Failed to load portfolios");
+      console.error("Error fetching portfolios:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreatePortfolio = async () => {
+    if (!newPortfolioName.trim()) return;
+
+    setIsCreating(true);
+    setError(null);
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${backendUrl}/api/v1/portfolios`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ name: newPortfolioName }),
+      });
+
+      if (response.status === 401) {
+        router.push("/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to create portfolio");
+      }
+
+      await fetchPortfolios();
+      setNewPortfolioName("");
+      setShowCreateModal(false);
+    } catch (err) {
+      setError("Failed to create portfolio");
+      console.error("Error creating portfolio:", err);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleRenamePortfolio = async () => {
+    if (!newPortfolioName.trim() || !selectedPortfolioId) return;
+
+    setIsRenaming(true);
+    setError(null);
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${backendUrl}/api/v1/portfolios/${selectedPortfolioId}`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ name: newPortfolioName }),
+      });
+
+      if (response.status === 401) {
+        router.push("/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to rename portfolio");
+      }
+
+      await fetchPortfolios();
+      setNewPortfolioName("");
+      setShowRenameModal(false);
+      setSelectedPortfolioId(null);
+    } catch (err) {
+      setError("Failed to rename portfolio");
+      console.error("Error renaming portfolio:", err);
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
+  const handleDeletePortfolio = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this portfolio?")) return;
+
+    try {
+      setError(null);
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${backendUrl}/api/v1/portfolios/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 401) {
+        router.push("/signin");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to delete portfolio");
+      }
+
+      await fetchPortfolios();
+    } catch (err) {
+      setError("Failed to delete portfolio");
+      console.error("Error deleting portfolio:", err);
+    }
+  };
+
+  const openRenameModal = (portfolio: BackendPortfolio) => {
+    setSelectedPortfolioId(portfolio.id);
+    setNewPortfolioName(portfolio.name);
+    setShowRenameModal(true);
+  };
+
+  useEffect(() => {
+    fetchPortfolios();
+  }, []);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-text-primary mb-2">
-          Portfolio
-        </h1>
-        <p className="text-text-tertiary">Track and manage your investments</p>
-      </div>
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          label="Total Value"
-          value={formatCurrency(portfolio.totalValue)}
-          change={portfolio.totalGainLossPercent}
-          trend={portfolio.totalGainLoss >= 0 ? "up" : "down"}
-          icon={<TrendingUp className="w-6 h-6" />}
-        />
-        <StatCard
-          label="Total Invested"
-          value={formatCurrency(portfolio.totalInvested)}
-        />
-        <StatCard
-          label="Total Gain/Loss"
-          value={formatCurrency(portfolio.totalGainLoss)}
-          trend={portfolio.totalGainLoss >= 0 ? "up" : "down"}
-        />
-        <StatCard
-          label="Holdings"
-          value={portfolio.holdings.length.toString()}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Performance Chart */}
-        <div className="lg:col-span-2 card-base">
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
-            Portfolio Performance
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={performanceData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
-              <XAxis stroke="#9CA3AF" />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#111827",
-                  border: "1px solid #1F2937",
-                  borderRadius: "8px",
-                }}
-                labelStyle={{ color: "#FFFFFF" }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#2563EB"
-                strokeWidth={2}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">
+            Portfolios
+          </h1>
+          <p className="text-text-tertiary">
+            Track and manage your investment portfolios
+          </p>
         </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="btn-primary flex items-center gap-2"
+        >
+          <Plus className="w-5 h-5" />
+          New Portfolio
+        </button>
+      </div>
 
-        {/* Sector Allocation */}
-        <div className="card-base">
-          <h2 className="text-xl font-semibold text-text-primary mb-6">
-            Sector Allocation
-          </h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={portfolio.sectorAllocation}
-                dataKey="value"
-                nameKey="sector"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-              >
-                {portfolio.sectorAllocation.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#111827",
-                  border: "1px solid #1F2937",
-                  borderRadius: "8px",
-                }}
-                labelStyle={{ color: "#FFFFFF" }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 rounded-lg bg-danger/10 border border-danger/30 text-danger">
+          {error}
+        </div>
+      )}
 
-          {/* Legend */}
-          <div className="space-y-2 mt-6">
-            {portfolio.sectorAllocation.map((sector) => (
-              <div key={sector.sector} className="flex items-center gap-3">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: sector.color }}
-                />
-                <div className="flex-1">
-                  <div className="text-sm text-text-primary">
-                    {sector.sector}
-                  </div>
-                  <div className="text-xs text-text-tertiary">
-                    {sector.percent.toFixed(1)}%
-                  </div>
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      ) : portfolios.length === 0 ? (
+        /* Empty State */
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">💼</div>
+          <h3 className="text-xl font-semibold text-text-primary mb-2">
+            No portfolios yet
+          </h3>
+          <p className="text-text-tertiary mb-6">
+            Create your first portfolio to start tracking investments
+          </p>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="btn-primary inline-flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Create Portfolio
+          </button>
+        </div>
+      ) : (
+        /* Portfolios Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {portfolios.map((portfolio) => (
+            <div key={portfolio.id} className="card-base group">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-text-primary">
+                    {portfolio.name}
+                  </h3>
+                  <p className="text-sm text-text-tertiary mt-1">
+                    {portfolio.holdings.length} {portfolio.holdings.length === 1 ? 'holding' : 'holdings'}
+                  </p>
                 </div>
-                <div className="text-sm font-semibold text-text-primary">
-                  {formatCurrency(sector.value)}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => openRenameModal(portfolio)}
+                    className="p-2 text-text-tertiary hover:text-primary transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeletePortfolio(portfolio.id)}
+                    className="p-2 text-text-tertiary hover:text-danger transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Holdings Table */}
-      <div className="card-base">
-        <h2 className="text-xl font-semibold text-text-primary mb-6">
-          Current Holdings
-        </h2>
-        <DataTable columns={columns} data={portfolio.holdings} />
-      </div>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {portfolio.holdings.length > 0 ? (
+                  portfolio.holdings.slice(0, 5).map((holding) => (
+                    <div
+                      key={holding.id}
+                      className="flex items-center justify-between text-sm p-2 rounded-lg bg-background"
+                    >
+                      <div>
+                        <div className="font-medium text-text-primary">
+                          {holding.ticker}
+                        </div>
+                        <div className="text-xs text-text-tertiary">
+                          {holding.quantity} shares
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium text-text-primary">
+                          {formatCurrency(holding.average_buy_price)}
+                        </div>
+                        <div className="text-xs text-text-tertiary">
+                          {formatDate(holding.purchase_date)}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-text-tertiary py-2">
+                    No holdings added yet
+                  </p>
+                )}
+              </div>
+
+              {portfolio.holdings.length > 5 && (
+                <p className="text-xs text-text-tertiary mt-2">
+                  +{portfolio.holdings.length - 5} more holdings
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create Portfolio Modal */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+          setNewPortfolioName("");
+        }}
+        title="Create New Portfolio"
+        actions={
+          <>
+            <button
+              onClick={() => {
+                setShowCreateModal(false);
+                setNewPortfolioName("");
+              }}
+              className="px-4 py-2 rounded-lg border border-border text-text-primary hover:bg-card transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreatePortfolio}
+              disabled={!newPortfolioName.trim() || isCreating}
+              className="btn-primary flex items-center gap-2"
+            >
+              {isCreating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create"
+              )}
+            </button>
+          </>
+        }
+      >
+        <input
+          type="text"
+          placeholder="e.g., Long Term, Retirement"
+          value={newPortfolioName}
+          onChange={(e) => setNewPortfolioName(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && handleCreatePortfolio()}
+          className="input-base"
+          autoFocus
+        />
+      </Modal>
+
+      {/* Rename Portfolio Modal */}
+      <Modal
+        isOpen={showRenameModal}
+        onClose={() => {
+          setShowRenameModal(false);
+          setNewPortfolioName("");
+          setSelectedPortfolioId(null);
+        }}
+        title="Rename Portfolio"
+        actions={
+          <>
+            <button
+              onClick={() => {
+                setShowRenameModal(false);
+                setNewPortfolioName("");
+                setSelectedPortfolioId(null);
+              }}
+              className="px-4 py-2 rounded-lg border border-border text-text-primary hover:bg-card transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleRenamePortfolio}
+              disabled={!newPortfolioName.trim() || isRenaming}
+              className="btn-primary flex items-center gap-2"
+            >
+              {isRenaming ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Renaming...
+                </>
+              ) : (
+                "Rename"
+              )}
+            </button>
+          </>
+        }
+      >
+        <input
+          type="text"
+          placeholder="Portfolio name"
+          value={newPortfolioName}
+          onChange={(e) => setNewPortfolioName(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && handleRenamePortfolio()}
+          className="input-base"
+          autoFocus
+        />
+      </Modal>
     </div>
   );
 }
