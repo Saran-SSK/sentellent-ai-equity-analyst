@@ -25,6 +25,7 @@ class EquityAnalystAgent:
         self,
         question: str,
         company: str | None = None,
+        user_context: dict[str, str] | None = None,
     ) -> str:
         """Answer an equity analysis question using retrieved context."""
 
@@ -45,6 +46,7 @@ class EquityAnalystAgent:
             context=context,
             document_type=document_type,
             has_context=bool(retrieved_chunks),
+            user_context=user_context,
         )
 
         response = gemini_provider.get_llm().invoke(prompt)
@@ -174,6 +176,7 @@ class EquityAnalystAgent:
         context: str,
         document_type: DocumentType,
         has_context: bool,
+        user_context: dict[str, str] | None = None,
     ) -> list[SystemMessage | HumanMessage]:
         """Construct the prompt for Gemini based on document type."""
 
@@ -187,7 +190,11 @@ No relevant company documents were retrieved.
 Inform the user that no supporting documents were found before giving any general financial explanation.
 """
 
+        # Build user context section
+        user_context_section = self._build_user_context_section(user_context)
+
         human_prompt = f"""
+{user_context_section}
 Retrieved Company Documents
 
 {context if context else "No relevant company documents found."}
@@ -201,6 +208,27 @@ User Question
             SystemMessage(content=system_prompt),
             HumanMessage(content=human_prompt),
         ]
+
+    def _build_user_context_section(self, user_context: dict[str, str] | None) -> str:
+        """Build the user context section for the prompt."""
+        if not user_context:
+            return ""
+
+        sections = []
+
+        if user_context.get("investor_profile"):
+            sections.append(user_context["investor_profile"])
+
+        if user_context.get("portfolio"):
+            sections.append(user_context["portfolio"])
+
+        if user_context.get("watchlists"):
+            sections.append(user_context["watchlists"])
+
+        if not sections:
+            return ""
+
+        return "\n\n".join(sections) + "\n\n"
 
     def _get_system_prompt(self, document_type: DocumentType) -> str:
         """Get the appropriate system prompt based on document type."""

@@ -14,11 +14,14 @@ from app.repositories.user import UserRepository
 from app.repositories.watchlist import WatchlistRepository
 from app.repositories.portfolio import PortfolioRepository
 from app.repositories.holding import HoldingRepository
+from app.repositories.investor_profile import InvestorProfileRepository
 from app.services.company import CompanyService
 from app.services.user import UserService
 from app.services.watchlist import WatchlistService
 from app.services.portfolio import PortfolioService
 from app.services.holding import HoldingService
+from app.services.investor_profile import InvestorProfileService
+from app.agents.context_builder import ContextBuilder
 
 
 def get_watchlist_repository(
@@ -197,4 +200,66 @@ def get_holding_service(
         holding_repository,
         portfolio_repository,
         company_repository,
+    )
+
+
+def get_investor_profile_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> InvestorProfileRepository:
+    """Dependency that creates an InvestorProfileRepository instance.
+
+    Args:
+        db: Injected database session.
+
+    Returns:
+        An InvestorProfileRepository bound to the current session.
+    """
+    return InvestorProfileRepository(db)
+
+
+def get_investor_profile_service(
+    investor_profile_repository: Annotated[
+        InvestorProfileRepository,
+        Depends(get_investor_profile_repository),
+    ],
+) -> InvestorProfileService:
+    """Dependency that creates an InvestorProfileService instance.
+
+    Args:
+        investor_profile_repository: Injected InvestorProfileRepository.
+
+    Returns:
+        An InvestorProfileService configured with the provided repository.
+    """
+    return InvestorProfileService(investor_profile_repository)
+
+
+def get_context_builder(
+    investor_profile_service: Annotated[
+        InvestorProfileService,
+        Depends(get_investor_profile_service),
+    ],
+    portfolio_service: Annotated[
+        PortfolioService,
+        Depends(get_portfolio_service),
+    ],
+    watchlist_service: Annotated[
+        WatchlistService,
+        Depends(get_watchlist_service),
+    ],
+) -> ContextBuilder:
+    """Dependency that creates a ContextBuilder instance.
+
+    Args:
+        investor_profile_service: Injected InvestorProfileService.
+        portfolio_service: Injected PortfolioService.
+        watchlist_service: Injected WatchlistService.
+
+    Returns:
+        A ContextBuilder configured with the provided services.
+    """
+    return ContextBuilder(
+        investor_profile_service,
+        portfolio_service,
+        watchlist_service,
     )

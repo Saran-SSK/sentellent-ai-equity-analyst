@@ -80,3 +80,10 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    investor_profile = relationship(
+        "InvestorProfile",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
