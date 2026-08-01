@@ -169,19 +169,23 @@ def get_company_news(
     ],
 ) -> list[dict[str, object]]:
     """Fetch company news from the market data provider."""
+    # First check if company exists
+    profile = company_service.fetch_company(symbol)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Company with symbol '{symbol}' not found.",
+        )
+
+    # Fetch news (may be empty list)
     news = company_service.get_company_news(
         symbol,
         from_date,
         to_date,
     )
 
-    if not news:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No news found for '{symbol}'.",
-        )
-
-    return news
+    # Return empty list with 200 OK if no news available
+    return news if news else []
 
 
 @router.get("/{symbol}/history")

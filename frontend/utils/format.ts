@@ -1,4 +1,5 @@
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "N/A"
   if (value >= 1000000) {
     return `₹${(value / 1000000).toFixed(2)} Cr`;
   }
@@ -11,14 +12,16 @@ export function formatCurrency(value: number): string {
   })}`;
 }
 
-export function formatNumber(value: number): string {
+export function formatNumber(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "N/A"
   return value.toLocaleString("en-IN", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
 }
 
-export function formatPercent(value: number): string {
+export function formatPercent(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "N/A"
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
@@ -43,7 +46,8 @@ export function formatDateTime(date: string | Date): string {
   return `${formatDate(date)} ${formatTime(date)}`;
 }
 
-export function formatVolume(volume: number): string {
+export function formatVolume(volume: number | null | undefined): string {
+  if (volume === null || volume === undefined) return "N/A"
   if (volume >= 1000000) {
     return `${(volume / 1000000).toFixed(2)}M`;
   }
