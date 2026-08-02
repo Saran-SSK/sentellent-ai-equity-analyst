@@ -7,8 +7,10 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production=false
+# Install dependencies with BuildKit cache
+# --mount=type=cache: Use Docker BuildKit cache for npm to avoid re-downloading unchanged packages
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 # Copy application source code
 COPY . .
@@ -17,30 +19,38 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production image
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Set working directory
 WORKDIR /app
 
 # Set environment variables
+# NODE_ENV: Set to production for optimized builds
+# PORT: Default Next.js port
 ENV NODE_ENV=production \
     PORT=3000
 
-# Copy package files
-COPY package*.json ./
+# Create a non-root user for security
+# Running as root is a security risk in production
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-# Install only production dependencies
-RUN npm ci --omit=dev && \
-    npm cache clean --force
+# Copy standalone output from builder stage
+# Standalone output includes only necessary files, significantly reducing image size
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy built application from builder stage
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.ts ./
-COPY --from=builder /app/next-env.d.ts ./
+# Switch to non-root user
+USER nextjs
 
 # Expose Next.js default port
 EXPOSE 3000
 
-# Start the application in production mode
-CMD ["npm", "start"]
+# Healthcheck to verify Next.js server is responding
+# Checks root endpoint (/) every 30s with 10s timeout, 3 retries before marking unhealthy
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=5s \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+# Start the application using the standalone server
+CMD ["node", "server.js"]

@@ -59,10 +59,11 @@ interface CompanyNews {
   id: string
   headline: string
   source: string
-  published_at: string
-  sentiment: string
+  publishedAt: string
+  sentiment: "positive" | "negative" | "neutral"
   link: string
   summary: string
+  companies: string[]
 }
 
 export default function CompanyDetailPage() {

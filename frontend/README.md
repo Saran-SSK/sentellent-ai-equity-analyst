@@ -2,6 +2,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Local Development
+
 First, run the development server:
 
 ```bash
@@ -14,11 +16,44 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your-browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+### Docker
+
+#### Build the Docker image:
+
+```bash
+docker build -t sentellent-frontend .
+```
+
+#### Run the container:
+
+Create a `.env` file based on `.env.example` with your environment variables:
+
+```bash
+cp .env.example .env
+# Edit .env with your actual values
+```
+
+Run the container with the environment file:
+
+```bash
+docker run --rm -p 3000:3000 --env-file .env sentellent-frontend
+```
+
+**Important:** The container must be started with `--env-file` to provide Auth.js and API configuration. Without environment variables, Auth.js will fail with "UntrustedHost" errors.
+
+#### Environment Variables:
+
+- `GOOGLE_CLIENT_ID`: Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
+- `NEXTAUTH_SECRET`: Secret for NextAuth.js session encryption
+- `NEXTAUTH_URL`: The URL where your app is hosted (e.g., http://localhost:3000)
+- `NEXT_PUBLIC_API_URL`: Backend API URL (e.g., http://localhost:8000)
 
 ## Learn More
 
