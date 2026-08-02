@@ -1,10 +1,40 @@
 import yfinance as yf
+import logging
 from datetime import datetime, timedelta
 from app.providers.market.base import MarketDataProvider
+
+logger = logging.getLogger(__name__)
 
 
 class YFinanceMarketDataProvider(MarketDataProvider):
     """Yahoo Finance provider using yfinance library for fallback support."""
+
+    # Indian exchange suffixes
+    INDIAN_EXCHANGES = [".NS", ".BO"]
+
+    def _normalize_indian_ticker(self, symbol: str) -> str:
+        """Normalize Indian ticker symbols by adding exchange suffix if missing."""
+        symbol_upper = symbol.upper().strip()
+        
+        # If already has suffix, return as-is
+        for suffix in self.INDIAN_EXCHANGES:
+            if symbol_upper.endswith(suffix):
+                return symbol_upper
+        
+        # Known Indian companies - add .NS suffix by default
+        indian_companies = {
+            "TCS", "RELIANCE", "INFY", "HDFCBANK", "ICICIBANK",
+            "TATAMOTORS", "HINDUNILVR", "ITC", "SBIN", "BHARTIARTL",
+            "LT", "AXISBANK", "KOTAKBANK", "WIPRO", "HCLTECH",
+            "MARUTI", "BAJFINANCE", "SUNPHARMA", "TATASTEEL", "ONGC",
+        }
+        
+        if symbol_upper in indian_companies:
+            normalized = f"{symbol_upper}.NS"
+            logger.info(f"Normalized Indian ticker: {symbol} -> {normalized}")
+            return normalized
+        
+        return symbol_upper
 
     def search_companies(self, query: str):
         """Search for companies using Yahoo Finance."""
@@ -18,15 +48,26 @@ class YFinanceMarketDataProvider(MarketDataProvider):
     def get_company(self, symbol: str):
         """Fetch company profile from Yahoo Finance."""
         try:
-            ticker = yf.Ticker(symbol)
+            normalized_symbol = self._normalize_indian_ticker(symbol)
+            logger.info(f"YFinanceMarketDataProvider.get_company: symbol={symbol}, normalized={normalized_symbol}")
+            
+            ticker = yf.Ticker(normalized_symbol)
             info = ticker.info
 
+            logger.info(f"YFinance info for {normalized_symbol}: {info}")
+
             if not info:
+                logger.warning(f"YFinance returned no info for {normalized_symbol}")
                 return None
 
-            return {
-                "symbol": symbol,
-                "name": info.get("longName") or info.get("shortName", ""),
+            # Extract company name with fallbacks
+            name = info.get("longName") or info.get("shortName") or info.get("symbol", "")
+            
+            logger.info(f"Extracted name for {normalized_symbol}: '{name}'")
+
+            result = {
+                "symbol": symbol,  # Return original symbol, not normalized
+                "name": name,
                 "exchange": info.get("exchange", ""),
                 "industry": info.get("industry", ""),
                 "sector": info.get("sector", ""),
@@ -38,16 +79,24 @@ class YFinanceMarketDataProvider(MarketDataProvider):
                 "employees": info.get("fullTimeEmployees"),
                 "founded_year": None,  # Not available in yfinance
             }
-        except Exception:
+            
+            logger.info(f"YFinanceMarketDataProvider returning: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"YFinanceMarketDataProvider.get_company failed for {symbol}: {e}")
             return None
 
     def get_quote(self, symbol: str):
         """Fetch latest market quote from Yahoo Finance."""
         try:
-            ticker = yf.Ticker(symbol)
+            normalized_symbol = self._normalize_indian_ticker(symbol)
+            logger.info(f"YFinanceMarketDataProvider.get_quote: symbol={symbol}, normalized={normalized_symbol}")
+            
+            ticker = yf.Ticker(normalized_symbol)
             info = ticker.info
 
             if not info:
+                logger.warning(f"YFinance returned no info for {normalized_symbol} in get_quote")
                 return None
 
             # Get current price from info or fast_info
@@ -61,8 +110,8 @@ class YFinanceMarketDataProvider(MarketDataProvider):
                 change = current_price - previous_close
                 change_percent = (change / previous_close) * 100 if previous_close != 0 else 0
 
-            return {
-                "symbol": symbol,
+            result = {
+                "symbol": symbol,  # Return original symbol
                 "current_price": current_price,
                 "change": change,
                 "change_percent": change_percent,
@@ -76,20 +125,28 @@ class YFinanceMarketDataProvider(MarketDataProvider):
                 "week_52_high": info.get("fiftyTwoWeekHigh"),
                 "week_52_low": info.get("fiftyTwoWeekLow"),
             }
-        except Exception:
+            
+            logger.info(f"YFinanceMarketDataProvider.get_quote returning: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"YFinanceMarketDataProvider.get_quote failed for {symbol}: {e}")
             return None
 
     def get_financials(self, symbol: str):
         """Fetch latest financial statements from Yahoo Finance."""
         try:
-            ticker = yf.Ticker(symbol)
+            normalized_symbol = self._normalize_indian_ticker(symbol)
+            logger.info(f"YFinanceMarketDataProvider.get_financials: symbol={symbol}, normalized={normalized_symbol}")
+            
+            ticker = yf.Ticker(normalized_symbol)
             info = ticker.info
 
             if not info:
+                logger.warning(f"YFinance returned no info for {normalized_symbol} in get_financials")
                 return None
 
-            return {
-                "symbol": symbol,
+            result = {
+                "symbol": symbol,  # Return original symbol
                 "revenue": info.get("totalRevenue"),
                 "net_income": info.get("netIncomeToCommon"),
                 "total_assets": info.get("totalAssets"),
@@ -99,7 +156,11 @@ class YFinanceMarketDataProvider(MarketDataProvider):
                 "free_cash_flow": info.get("freeCashflow"),
                 "year": datetime.now().year,
             }
-        except Exception:
+            
+            logger.info(f"YFinanceMarketDataProvider.get_financials returning: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"YFinanceMarketDataProvider.get_financials failed for {symbol}: {e}")
             return None
 
     def get_company_news(
@@ -110,7 +171,10 @@ class YFinanceMarketDataProvider(MarketDataProvider):
     ):
         """Fetch company news from Yahoo Finance."""
         try:
-            ticker = yf.Ticker(symbol)
+            normalized_symbol = self._normalize_indian_ticker(symbol)
+            logger.info(f"YFinanceMarketDataProvider.get_company_news: symbol={symbol}, normalized={normalized_symbol}")
+            
+            ticker = yf.Ticker(normalized_symbol)
             
             # Convert date strings to datetime objects
             from_dt = datetime.strptime(from_date, "%Y-%m-%d")
@@ -120,6 +184,7 @@ class YFinanceMarketDataProvider(MarketDataProvider):
             news = ticker.news
             
             if not news:
+                logger.info(f"No news found for {normalized_symbol}")
                 return []
 
             filtered_news = []
@@ -138,8 +203,10 @@ class YFinanceMarketDataProvider(MarketDataProvider):
                         "category": article.get("category", ""),
                     })
 
+            logger.info(f"YFinanceMarketDataProvider.get_company_news returning {len(filtered_news)} articles")
             return filtered_news
-        except Exception:
+        except Exception as e:
+            logger.error(f"YFinanceMarketDataProvider.get_company_news failed for {symbol}: {e}")
             return []
 
     def get_historical_prices(

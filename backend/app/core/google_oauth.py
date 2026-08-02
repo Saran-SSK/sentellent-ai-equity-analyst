@@ -48,10 +48,13 @@ def verify_google_id_token(token: str) -> dict[str, Any]:
         request = google_requests.Request()
         
         # Verify the token
+        # clock_skew_in_seconds: Allow small clock differences between client and server (10 seconds)
+        # This prevents "Token used too early" errors due to minor time synchronization issues
         id_info = id_token.verify_oauth2_token(
             token,
             request,
             google_client_id,
+            clock_skew_in_seconds=10,
         )
         
         # Log token details for debugging

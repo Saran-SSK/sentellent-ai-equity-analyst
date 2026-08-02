@@ -1,6 +1,26 @@
-version: '3.8'
-
 services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentellent-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Postgres123
+      - POSTGRES_DB=sentellent
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - sentellent-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sentellent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   # FastAPI Backend Service
   backend:
     build:
@@ -13,9 +33,12 @@ services:
       - backend/.env
     environment:
       - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg2://postgres:Postgres123@postgres:5432/sentellent
     restart: unless-stopped
     networks:
       - sentellent-network
+    depends_on:
+      - postgres
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
@@ -40,13 +63,18 @@ services:
     networks:
       - sentellent-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local
 
 networks:
   # Custom bridge network for inter-service communication

@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { TrendingUp, TrendingDown, DollarSign, PieChart, Loader2, List } from "lucide-react"
+import { TrendingUp, DollarSign, PieChart, Loader2, List, Plus, Briefcase, Sparkles, ArrowUp } from "lucide-react"
 import StatCard from "@/components/cards/StatCard"
-import NewsCard from "@/components/cards/NewsCard"
-import { MOCK_NEWS } from "@/utils/mockData"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 
 interface BackendWatchlist {
   id: number;
@@ -21,6 +20,7 @@ interface BackendPortfolio {
 }
 
 export default function DashboardPage() {
+  const { data: session } = useSession()
   const [watchlists, setWatchlists] = useState<BackendWatchlist[]>([])
   const [portfolios, setPortfolios] = useState<BackendPortfolio[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -60,6 +60,7 @@ export default function DashboardPage() {
 
       setWatchlists(watchlistsData)
       setPortfolios(portfoliosData)
+
     } catch (err) {
       setError("Failed to load dashboard data")
       console.error("Error fetching data:", err)
@@ -105,7 +106,9 @@ export default function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
-        <p className="text-text-tertiary mt-1">Welcome back! Here's your portfolio overview.</p>
+        <p className="text-text-tertiary mt-1">
+          Welcome back, {session?.user?.name || ""} 👋 Here's your portfolio overview.
+        </p>
       </div>
 
       {/* Error Message */}
@@ -130,82 +133,59 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Watchlists */}
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Personalized Market News */}
               <div className="card-base">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-text-primary">Watchlists</h2>
-                  <Link href="/watchlists" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                    View All
-                  </Link>
+                  <h2 className="text-lg font-semibold text-text-primary">Personalized Market News</h2>
                 </div>
-                {watchlists.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-2">📋</div>
-                    <p className="text-text-tertiary">No watchlists yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {watchlists.slice(0, 5).map((watchlist) => (
-                      <Link key={watchlist.id} href={`/watchlists/${watchlist.id}`}>
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-background hover:bg-card transition-colors">
-                          <div>
-                            <div className="font-medium text-text-primary">{watchlist.name}</div>
-                            <div className="text-xs text-text-tertiary">
-                              {watchlist.companies.length} {watchlist.companies.length === 1 ? 'company' : 'companies'}
-                            </div>
-                          </div>
-                          <div className="text-text-tertiary">→</div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                <div className="text-sm text-text-tertiary">
+                  Your watchlists and portfolio context will be reflected here as part of the dashboard experience.
+                </div>
               </div>
             </div>
 
-            {/* Market News */}
-            <div>
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Quick Actions */}
               <div className="card-base">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-text-primary">Market News</h2>
-                  <Link href="/market-news" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                    View All
-                  </Link>
-                </div>
+                <h2 className="text-lg font-semibold text-text-primary mb-4">Quick Actions</h2>
                 <div className="space-y-3">
-                  {MOCK_NEWS.slice(0, 4).map((news) => (
-                    <NewsCard key={news.id} article={news} />
-                  ))}
+                  <Link href="/watchlists" className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/15 to-blue-600/15 hover:from-primary/25 hover:to-blue-600/25 transition-all w-full border border-primary/20">
+                    <div className="w-10 h-10 rounded-lg bg-primary/30 flex items-center justify-center flex-shrink-0">
+                      <Plus className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-text-primary">Create Watchlist</div>
+                      <div className="text-xs text-text-tertiary">Track your stocks</div>
+                    </div>
+                  </Link>
+                  <Link href="/portfolio" className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/15 to-blue-600/15 hover:from-primary/25 hover:to-blue-600/25 transition-all w-full border border-primary/20">
+                    <div className="w-10 h-10 rounded-lg bg-primary/30 flex items-center justify-center flex-shrink-0">
+                      <Briefcase className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-text-primary">Update Portfolio</div>
+                      <div className="text-xs text-text-tertiary">Manage holdings</div>
+                    </div>
+                  </Link>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Quick Actions */}
-          <div className="card-base">
-            <h2 className="text-lg font-semibold text-text-primary mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Link key="analyze" href="/ai" className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all text-left">
-                <div className="text-primary mb-2">📊</div>
-                <div className="text-sm font-medium text-text-primary">Analyze Stock</div>
-                <div className="text-xs text-text-tertiary">Get AI insights</div>
-              </Link>
-              <Link key="watchlist" href="/watchlists" className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all text-left">
-                <div className="text-primary mb-2">📈</div>
-                <div className="text-sm font-medium text-text-primary">Create Watchlist</div>
-                <div className="text-xs text-text-tertiary">Track stocks</div>
-              </Link>
-              <Link key="news" href="/market-news" className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all text-left">
-                <div className="text-primary mb-2">📰</div>
-                <div className="text-sm font-medium text-text-primary">Market News</div>
-                <div className="text-xs text-text-tertiary">Latest updates</div>
-              </Link>
-              <Link key="research" href="/research" className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all text-left">
-                <div className="text-primary mb-2">🔬</div>
-                <div className="text-sm font-medium text-text-primary">Research</div>
-                <div className="text-xs text-text-tertiary">Deep dive</div>
+              {/* AI Research Ready */}
+              <Link href="/chat" className="card-base block hover:border-primary/30 transition-all group">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors">AI Research Ready</div>
+                    <div className="text-xs text-text-tertiary">Start analyzing stocks</div>
+                  </div>
+                  <ArrowUp className="w-5 h-5 text-text-tertiary group-hover:text-primary transition-colors" />
+                </div>
               </Link>
             </div>
           </div>

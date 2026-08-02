@@ -38,9 +38,12 @@ class HybridMarketDataProvider(MarketDataProvider):
         """Fetch company profile with Finnhub -> yfinance fallback."""
         try:
             result = self.finnhub_provider.get_company(symbol)
-            if result:
+            # Validate that essential fields are present before accepting result
+            if result and result.get("name"):
                 logger.info(f"Successfully fetched company profile for {symbol} from Finnhub")
                 return result
+            else:
+                logger.warning(f"Finnhub returned incomplete data for {symbol} (name missing), trying yfinance fallback")
         except Exception as e:
             logger.warning(f"Finnhub failed for company profile {symbol}: {e}, trying yfinance fallback")
         
@@ -59,9 +62,12 @@ class HybridMarketDataProvider(MarketDataProvider):
         """Fetch quote with Finnhub -> yfinance fallback."""
         try:
             result = self.finnhub_provider.get_quote(symbol)
-            if result:
+            # Validate that essential fields are present before accepting result
+            if result and result.get("price") is not None:
                 logger.info(f"Successfully fetched quote for {symbol} from Finnhub")
                 return result
+            else:
+                logger.warning(f"Finnhub returned incomplete quote data for {symbol}, trying yfinance fallback")
         except Exception as e:
             logger.warning(f"Finnhub failed for quote {symbol}: {e}, trying yfinance fallback")
         
@@ -80,9 +86,12 @@ class HybridMarketDataProvider(MarketDataProvider):
         """Fetch financials with Finnhub -> yfinance fallback."""
         try:
             result = self.finnhub_provider.get_financials(symbol)
-            if result:
+            # Validate that essential fields are present before accepting result
+            if result and (result.get("revenue") or result.get("net_income")):
                 logger.info(f"Successfully fetched financials for {symbol} from Finnhub")
                 return result
+            else:
+                logger.warning(f"Finnhub returned incomplete financials data for {symbol}, trying yfinance fallback")
         except Exception as e:
             logger.warning(f"Finnhub failed for financials {symbol}: {e}, trying yfinance fallback")
         

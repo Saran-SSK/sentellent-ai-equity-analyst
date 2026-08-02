@@ -23,6 +23,7 @@ from app.services.holding import HoldingService
 from app.services.investor_profile import InvestorProfileService
 from app.agents.context_builder import ContextBuilder
 from app.agents.memory_extractor import MemoryExtractor
+from app.agents.equity_analyst import EquityAnalystAgent
 
 
 def get_watchlist_repository(
@@ -273,3 +274,20 @@ def get_memory_extractor() -> MemoryExtractor:
         A MemoryExtractor instance.
     """
     return MemoryExtractor()
+
+
+def get_equity_analyst_agent(
+    company_service: Annotated[
+        CompanyService,
+        Depends(get_company_service),
+    ],
+) -> EquityAnalystAgent:
+    """Dependency that creates an EquityAnalystAgent instance with company service for live data.
+
+    Args:
+        company_service: Injected CompanyService for live data retrieval.
+
+    Returns:
+        An EquityAnalystAgent configured with the company service.
+    """
+    return EquityAnalystAgent(company_service=company_service)

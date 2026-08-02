@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from app.agents.context_builder import ContextBuilder
-from app.agents.equity_analyst import equity_analyst_agent
+from app.agents.equity_analyst import EquityAnalystAgent
 from app.agents.memory_extractor import MemoryExtractor
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.schemas.investor_profile import InvestorProfileUpdate
@@ -20,10 +20,12 @@ class ChatService:
         context_builder: ContextBuilder,
         memory_extractor: MemoryExtractor,
         investor_profile_service: InvestorProfileService,
+        equity_analyst_agent: EquityAnalystAgent,
     ) -> None:
         self.context_builder = context_builder
         self.memory_extractor = memory_extractor
         self.investor_profile_service = investor_profile_service
+        self.equity_analyst_agent = equity_analyst_agent
 
     async def ask(self, request: ChatRequest, user_id: int) -> ChatResponse:
         """Ask the equity analyst agent a company-specific question."""
@@ -40,7 +42,7 @@ class ChatService:
             company=request.company,
         )
 
-        answer = equity_analyst_agent.ask(
+        answer = self.equity_analyst_agent.ask(
             company=request.company,
             question=request.question,
             user_context=user_context,

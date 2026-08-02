@@ -74,16 +74,6 @@ export interface Citation {
   snippet: string;
 }
 
-export interface ResearchReport {
-  id: string;
-  title: string;
-  type: "sector_analysis" | "stock_analysis";
-  company?: string;
-  createdAt: string;
-  content: string;
-  aiGenerated: boolean;
-}
-
 export interface InvestorProfile {
   riskAppetite: "low" | "moderate" | "high";
   investmentHorizon: "short" | "medium" | "long";

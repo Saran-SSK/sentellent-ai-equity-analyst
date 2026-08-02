@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.agents.equity_analyst import equity_analyst_agent
+from app.agents.equity_analyst import EquityAnalystAgent
 from app.ingestion.company_ingestion import company_ingestion_service
 from app.rag.embeddings import embedding_service
 from app.rag.qdrant_service import qdrant_service
@@ -46,6 +46,8 @@ def main() -> None:
             print(f"Chunk: {result['chunk']}")
             print()
 
+        # Create agent instance without company service for RAG-only test
+        equity_analyst_agent = EquityAnalystAgent()
         response = equity_analyst_agent.ask(
             question="What are Apple's major revenue sources?",
             company="Apple",

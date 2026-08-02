@@ -1,4 +1,4 @@
-import type { Stock, Watchlist, Portfolio, NewsArticle, ChatMessage, ResearchReport, InvestorProfile } from "@/types";
+import type { Stock, Watchlist, Portfolio, NewsArticle, ChatMessage, InvestorProfile } from "@/types";
 
 export const MOCK_STOCKS: Stock[] = [
   {
@@ -240,34 +240,6 @@ export const MOCK_CHAT_MESSAGES: ChatMessage[] = [
         snippet: "Detailed financial analysis and future outlook...",
       },
     ],
-  },
-];
-
-export const MOCK_RESEARCH_REPORTS: ResearchReport[] = [
-  {
-    id: "r1",
-    title: "IT Sector Analysis: Q3 2024 Outlook",
-    type: "sector_analysis",
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    content: "Comprehensive analysis of IT sector trends and opportunities...",
-    aiGenerated: true,
-  },
-  {
-    id: "r2",
-    title: "TCS Deep Dive: Valuation & Growth Strategy",
-    company: "TCS",
-    type: "stock_analysis",
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    content: "In-depth analysis of Tata Consultancy Services...",
-    aiGenerated: true,
-  },
-  {
-    id: "r3",
-    title: "Banking Sector Report: Impact of Rate Hikes",
-    type: "sector_analysis",
-    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    content: "Analysis of RBI rate decisions and banking sector implications...",
-    aiGenerated: false,
   },
 ];
 

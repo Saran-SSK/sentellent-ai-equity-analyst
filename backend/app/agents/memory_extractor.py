@@ -81,104 +81,128 @@ Rules:
 - If the user asks a factual question about a company (e.g., "What is Apple's PE ratio?"), return {}."""
 
     def __init__(self) -> None:
-        self._llm = gemini_provider.get_llm()
+        self._llm = None
 
     def extract(self, message: str) -> dict[str, str | None]:
-        """Extract investor preferences from a user message.
+        """Extract investor preferences from a user message without another Gemini call.
 
-        Args:
-            message: The user's message to analyze.
-
-        Returns:
-            Dictionary with extracted preferences. Returns empty dict if no preferences found.
+        For common preference cues, this uses a lightweight rule-based pass that is fast,
+        deterministic, and suitable for optional memory extraction. Complex cases remain
+        unsupported rather than triggering an additional model request.
         """
         if not message or not message.strip():
             return {}
 
-        human_prompt = f"""Extract investor preferences from this message:
+        normalized_message = message.strip()
+        if self._looks_like_factual_question(normalized_message):
+            return {}
 
-{message}
+        extracted = self._extract_with_rules(normalized_message)
+        return self._validate_and_normalize(extracted)
 
-Return ONLY valid JSON. Return {{}} if no preferences should be remembered."""
+    def _looks_like_factual_question(self, message: str) -> bool:
+        """Return True for simple factual questions that should not influence memory."""
+        lowered = message.lower()
+        if not lowered.endswith("?"):
+            return False
 
-        try:
-            # Try structured output first
-            structured_llm = self._llm.with_structured_output(MemoryExtraction)
-            result: MemoryExtraction = structured_llm.invoke(
-                [
-                    SystemMessage(content=self.SYSTEM_PROMPT),
-                    HumanMessage(content=human_prompt),
-                ]
-            )
+        return any(
+            phrase in lowered
+            for phrase in [
+                "what is",
+                "what are",
+                "who is",
+                "when did",
+                "where is",
+                "which company",
+                "what does",
+                "how much",
+                "what was",
+            ]
+        )
 
-            # Convert to dict and filter out None values
-            extracted = {
-                "risk_profile": result.risk_profile,
-                "investment_horizon": result.investment_horizon,
-                "investment_style": result.investment_style,
-                "preferred_market": result.preferred_market,
-                "preferred_sectors": result.preferred_sectors,
-                "notes": result.notes,
-            }
+    def _extract_with_rules(self, message: str) -> dict[str, str | None]:
+        """Extract obvious investor preferences from a message with regex-based heuristics."""
+        text = message.lower()
+        extracted: dict[str, str | None] = {}
 
-            # Validate and normalize enum values
-            return self._validate_and_normalize(extracted)
+        if any(term in text for term in ["conservative", "risk averse", "low risk"]):
+            extracted["risk_profile"] = "Conservative"
+        elif any(term in text for term in ["moderate", "balanced", "medium risk"]):
+            extracted["risk_profile"] = "Moderate"
+        elif any(
+            term in text for term in ["aggressive", "high risk", "growth oriented"]
+        ):
+            extracted["risk_profile"] = "Aggressive"
+        elif any(
+            term in text for term in ["very aggressive", "very risky", "speculative"]
+        ):
+            extracted["risk_profile"] = "Very Aggressive"
 
-        except Exception as e:
-            logger.warning(f"Structured output extraction failed: {e}. Falling back to text-based extraction.")
-            return self._fallback_extraction(human_prompt)
+        if any(
+            term in text
+            for term in ["long term", "long-term", "retirement", "for the long run"]
+        ):
+            extracted["investment_horizon"] = "Long Term"
+        elif any(
+            term in text
+            for term in ["medium term", "medium-term", "education", "college"]
+        ):
+            extracted["investment_horizon"] = "Medium Term"
+        elif any(
+            term in text
+            for term in ["short term", "short-term", "emergency fund", "soon"]
+        ):
+            extracted["investment_horizon"] = "Short Term"
 
-    def _fallback_extraction(self, human_prompt: str) -> dict[str, str | None]:
-        """Fallback to text-based extraction when structured output fails."""
-        try:
-            response = self._llm.invoke(
-                [
-                    SystemMessage(content=self.SYSTEM_PROMPT),
-                    HumanMessage(content=human_prompt),
-                ]
-            )
+        if any(term in text for term in ["growth", "growth stock", "growth investing"]):
+            extracted["investment_style"] = "Growth"
+        elif any(term in text for term in ["value", "value investing", "undervalued"]):
+            extracted["investment_style"] = "Value"
+        elif any(term in text for term in ["dividend", "income"]):
+            extracted["investment_style"] = "Dividend"
+        elif any(term in text for term in ["index fund", "index", "etf"]):
+            extracted["investment_style"] = "Index"
+        elif any(term in text for term in ["technical", "chart", "momentum"]):
+            extracted["investment_style"] = "Technical"
 
-            if isinstance(response.content, str):
-                content = response.content.strip()
-                # Strip markdown code fences if present
-                if content.startswith("```"):
-                    content = content.strip("`")
-                    # Remove language identifier if present (e.g., "json")
-                    lines = content.split("\n")
-                    if lines[0].strip().lower() in ["json", "{"]:
-                        content = "\n".join(lines[1:])
-                    content = content.strip()
+        if any(term in text for term in ["nyse", "new york stock exchange"]):
+            extracted["preferred_market"] = "NYSE"
+        elif any(term in text for term in ["nasdaq"]):
+            extracted["preferred_market"] = "NASDAQ"
+        elif any(term in text for term in ["nse", "national stock exchange", "india"]):
+            extracted["preferred_market"] = "NSE"
 
-                # Try to parse as JSON
-                try:
-                    parsed = json.loads(content)
-                    if isinstance(parsed, dict):
-                        # Filter to only allowed keys and non-null values
-                        allowed_keys = {
-                            "risk_profile",
-                            "investment_horizon",
-                            "investment_style",
-                            "preferred_market",
-                            "preferred_sectors",
-                            "notes",
-                        }
-                        filtered = {
-                            k: v
-                            for k, v in parsed.items()
-                            if k in allowed_keys and v is not None
-                        }
-                        # Validate and normalize
-                        return self._validate_and_normalize(filtered)
-                except json.JSONDecodeError as e:
-                    logger.warning(f"Failed to parse JSON from fallback response: {e}")
+        sector_mapping = {
+            "healthcare": "Healthcare",
+            "health care": "Healthcare",
+            "banking": "Banking",
+            "bank": "Banking",
+            "it": "IT",
+            "technology": "IT",
+            "tech": "IT",
+            "energy": "Energy",
+            "financials": "Financials",
+            "consumer": "Consumer",
+            "telecom": "Telecommunications",
+            "telecommunications": "Telecommunications",
+        }
+        for keyword, mapped_value in sector_mapping.items():
+            if keyword in text:
+                extracted["preferred_sectors"] = mapped_value
+                break
 
-        except Exception as e:
-            logger.error(f"Fallback extraction failed: {e}")
+        if any(
+            term in text
+            for term in ["avoid", "prefer not", "only invest in", "interested in"]
+        ):
+            extracted["notes"] = message.strip()
 
-        # Return empty dict on any failure
-        return {}
+        return extracted
 
-    def _validate_and_normalize(self, extracted: dict[str, str | None]) -> dict[str, str | None]:
+    def _validate_and_normalize(
+        self, extracted: dict[str, str | None]
+    ) -> dict[str, str | None]:
         """Validate and normalize extracted enum values."""
         validated = {}
 

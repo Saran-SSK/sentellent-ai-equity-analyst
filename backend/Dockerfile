@@ -15,11 +15,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Install system dependencies
 # gcc and g++ are required for building some Python packages
 # curl is required for healthcheck
+# postgresql-client is required for psql in entrypoint script
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     curl \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -40,6 +42,10 @@ RUN useradd --create-home --shell /bin/bash appuser
 # Copy application source code with ownership
 COPY --chown=appuser:appuser . .
 
+# Copy and make entrypoint script executable
+COPY --chown=appuser:appuser entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Switch to non-root user
 USER appuser
 
@@ -51,6 +57,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=5s \
     CMD curl -f http://localhost:8000/ || exit 1
 
-# Run the application with uvicorn
-# Using the same entrypoint as before
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application with entrypoint script
+# Entrypoint waits for PostgreSQL, runs migrations, then starts FastAPI
+CMD ["/app/entrypoint.sh"]

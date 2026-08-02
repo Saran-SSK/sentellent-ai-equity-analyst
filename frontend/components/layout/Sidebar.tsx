@@ -9,10 +9,6 @@ import {
   Bookmark,
   Briefcase,
   Building2,
-  Newspaper,
-  BookOpen,
-  Settings,
-  LogOut,
   User,
   ChevronDown,
 } from "lucide-react";
@@ -27,8 +23,7 @@ export default function Sidebar() {
     { href: "/watchlists", icon: Bookmark, label: "Watchlists" },
     { href: "/portfolio", icon: Briefcase, label: "Portfolio" },
     { href: "/companies", icon: Building2, label: "Companies" },
-    { href: "/market-news", icon: Newspaper, label: "Market News" },
-    { href: "/research", icon: BookOpen, label: "Research" },
+    { href: "/settings", icon: User, label: "Investor Profile" },
   ];
 
   const isActive = (href: string) => {
@@ -39,7 +34,7 @@ export default function Sidebar() {
   return (
     <div
       className={`${
-        expanded ? "w-sidebar" : "w-20"
+        expanded ? "w-[260px]" : "w-20"
       } bg-sidebar border-r border-border h-screen flex flex-col transition-all duration-300 overflow-hidden`}
     >
       {/* Logo */}
@@ -79,45 +74,6 @@ export default function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Settings & User */}
-      <div className="p-3 border-t border-border space-y-2">
-        <Link
-          href="/settings"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-            isActive("/settings")
-              ? "bg-primary/20 text-primary border border-primary/30"
-              : "text-text-secondary hover:bg-sidebar border border-transparent hover:text-text-primary"
-          }`}
-        >
-          <Settings className="w-5 h-5 flex-shrink-0" />
-          {expanded && <span className="text-sm font-medium">Settings</span>}
-        </Link>
-
-        <div className="relative group">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-card border border-border text-text-primary hover:border-primary/30 transition-all duration-200">
-            <User className="w-5 h-5 flex-shrink-0" />
-            {expanded && (
-              <>
-                <div className="flex-1 text-left">
-                  <div className="text-sm font-medium">John Investor</div>
-                  <div className="text-xs text-text-tertiary">john@email.com</div>
-                </div>
-                <ChevronDown className="w-4 h-4" />
-              </>
-            )}
-          </button>
-
-          {expanded && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border border-border rounded-xl shadow-lg hidden group-hover:block z-50">
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-danger hover:bg-danger/10 rounded-xl transition-colors">
-                <LogOut className="w-4 h-4" />
-                <span className="text-sm">Logout</span>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Collapse Button */}
       <div className="p-3 border-t border-border">
