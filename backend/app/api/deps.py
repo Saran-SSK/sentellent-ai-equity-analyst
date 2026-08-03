@@ -10,6 +10,7 @@ from app.db.database import SessionLocal
 from app.providers.market.base import MarketDataProvider
 from app.providers.market.provider import get_market_provider
 from app.repositories.company import CompanyRepository
+from app.repositories.recent_company_view import RecentCompanyViewRepository
 from app.repositories.user import UserRepository
 from app.repositories.watchlist import WatchlistRepository
 from app.repositories.portfolio import PortfolioRepository
@@ -116,6 +117,10 @@ def get_company_service(
     market_provider: Annotated[
         MarketDataProvider, Depends(get_market_provider_dependency)
     ],
+    recent_company_view_repository: Annotated[
+        RecentCompanyViewRepository,
+        Depends(get_recent_company_view_repository),
+    ],
 ) -> CompanyService:
     """Dependency that creates a CompanyService instance.
 
@@ -126,7 +131,18 @@ def get_company_service(
     Returns:
         A CompanyService configured with the provided repository and market provider.
     """
-    return CompanyService(company_repository, market_provider)
+    return CompanyService(
+        company_repository,
+        market_provider,
+        recent_company_view_repository,
+    )
+
+
+def get_recent_company_view_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> RecentCompanyViewRepository:
+    """Dependency that creates a recent-company-view repository."""
+    return RecentCompanyViewRepository(db)
 
 
 def get_portfolio_repository(

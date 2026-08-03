@@ -4,6 +4,7 @@ from app.models.watchlist import Watchlist, WatchlistCompany
 from app.models.portfolio import Portfolio
 from app.models.holding import Holding
 from app.models.investor_profile import InvestorProfile
+from app.models.recent_company_view import UserCompanyView
 
 __all__ = [
     "Company",
@@ -13,4 +14,5 @@ __all__ = [
     "Portfolio",
     "Holding",
     "InvestorProfile",
+    "UserCompanyView",
 ]

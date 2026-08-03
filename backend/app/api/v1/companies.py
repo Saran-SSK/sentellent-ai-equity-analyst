@@ -5,7 +5,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.api.deps import get_company_service
+from app.api.v1.auth import get_current_user
 from app.core.exceptions import CompanyAlreadyExistsError, CompanyNotFoundError
+from app.models.user import User
 from app.schemas.company import CompanyCreate, CompanyRead, CompanyUpdate
 from app.services.company import CompanyService
 
@@ -46,6 +48,39 @@ def search_companies(
 ) -> list[dict[str, object]]:
     """Search for companies using market data provider."""
     return company_service.search_companies(q)
+
+
+@router.get("/recommendations")
+def get_recommendations(
+    current_user: Annotated[User, Depends(get_current_user)],
+    company_service: Annotated[CompanyService, Depends(get_company_service)],
+    limit: Annotated[int, Query(ge=1, le=12)] = 6,
+) -> list[dict[str, object]]:
+    """Return personalized company recommendations for the current user."""
+    return company_service.get_recommendations(current_user.id, limit=limit)
+
+
+@router.get("/recently-viewed")
+def get_recently_viewed(
+    current_user: Annotated[User, Depends(get_current_user)],
+    company_service: Annotated[CompanyService, Depends(get_company_service)],
+    limit: Annotated[int, Query(ge=1, le=10)] = 5,
+) -> list[dict[str, object]]:
+    """Return recently viewed companies for the current user."""
+    return company_service.get_recently_viewed(current_user.id, limit=limit)
+
+
+@router.post("/{symbol}/viewed")
+def track_company_view(
+    symbol: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    company_service: Annotated[CompanyService, Depends(get_company_service)],
+) -> dict[str, str]:
+    """Record that the current user viewed a company detail page."""
+    print(f"Tracking company view: user_id={current_user.id}, symbol={symbol}")
+    company_service.track_recent_view(current_user.id, symbol)
+    print(f"Company view tracked successfully")
+    return {"message": "Company view recorded."}
 
 
 @router.get("/{company_id}", response_model=CompanyRead)

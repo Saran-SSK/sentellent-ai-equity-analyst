@@ -92,6 +92,30 @@ export default function CompanyDetailPage() {
     }
   }
 
+  const trackCompanyView = async (companySymbol: string) => {
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const token = localStorage.getItem("access_token")
+      console.log("Tracking company view:", companySymbol)
+      
+      const response = await fetch(`${backendUrl}/api/v1/companies/${encodeURIComponent(companySymbol)}/viewed`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      })
+      
+      if (response.ok) {
+        console.log("Company view tracked successfully")
+      } else {
+        console.error("Failed to track company view:", response.status, response.statusText)
+      }
+    } catch (err) {
+      console.error("Failed to track company view", err)
+    }
+  }
+
   const fetchCompanyData = async () => {
     try {
       setIsLoading(true)
@@ -128,6 +152,7 @@ export default function CompanyDetailPage() {
       setQuote(quoteData)
       setFinancials(financialsData)
       setNews(newsData)
+      await trackCompanyView(symbol)
     } catch (err) {
       setError("Failed to load company data")
       console.error("Error fetching company data:", err)

@@ -87,3 +87,9 @@ class User(Base):
         cascade="all, delete-orphan",
         uselist=False,
     )
+
+    recent_company_views = relationship(
+        "UserCompanyView",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
