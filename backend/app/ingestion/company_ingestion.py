@@ -14,12 +14,7 @@ class CompanyIngestionService:
     """Service for ingesting prepared company text chunks into Qdrant."""
 
     def __init__(self, collection_name: str = "company_documents") -> None:
-        """Initialize the ingestion service and ensure the collection exists."""
         self._collection_name = collection_name
-        qdrant_service.create_collection(
-            collection_name=self._collection_name,
-            vector_size=embedding_service.embedding_dimension(),
-        )
 
     def ingest_documents(
         self,
@@ -47,6 +42,11 @@ class CompanyIngestionService:
             return 0
 
         print(f"Generating embeddings for {len(valid_documents)} chunks...")
+
+        qdrant_service.create_collection(
+            collection_name=self._collection_name,
+            vector_size=embedding_service.embedding_dimension(),
+        )
 
         embeddings = embedding_service.embed_documents(valid_documents)
 

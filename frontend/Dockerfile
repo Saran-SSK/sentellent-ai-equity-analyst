@@ -15,6 +15,10 @@ RUN --mount=type=cache,target=/root/.npm \
 # Copy application source code
 COPY . .
 
+# Build-time variables for Next.js
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build the application
 RUN npm run build
 

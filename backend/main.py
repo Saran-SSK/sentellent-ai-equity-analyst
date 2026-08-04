@@ -1,10 +1,8 @@
 import time
-
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
 from app.api.router import api_router
 from app.core.handlers import (
     http_exception_handler,
@@ -12,23 +10,25 @@ from app.core.handlers import (
     validation_exception_handler,
 )
 from app.core.logging import configure_logging
+from app.rag.embeddings import embedding_service
 
 app = FastAPI(
     title="Sentellent AI Equity Analyst",
     version="1.0.0",
 )
-
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://sentellent-ai-alb-459672769.ap-south-1.elb.amazonaws.com",
+        "https://sentellent-ai-alb-459672769.ap-south-1.elb.amazonaws.com",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 logger = configure_logging()
-
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unexpected_exception_handler)
@@ -38,6 +38,11 @@ app.include_router(api_router)
 @app.on_event("startup")
 def startup_event() -> None:
     logger.info("Application startup")
+
+    # Preload the embedding model
+    embedding_service._get_model()
+
+    logger.info("Embedding model loaded")
 
 
 @app.on_event("shutdown")

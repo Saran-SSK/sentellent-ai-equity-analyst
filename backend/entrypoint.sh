@@ -1,18 +1,19 @@
 #!/bin/sh
 set -e
 
-echo "Waiting for PostgreSQL to be ready..."
-until PGPASSWORD=Postgres123 psql -h postgres -U postgres -d sentellent -c '\q'; do
+echo "Waiting for PostgreSQL..."
+
+until pg_isready \
+  -h host.docker.internal \
+  -p 5432 \
+  -U postgres
+do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 2
 done
 
-echo "PostgreSQL is up - running migrations"
-
 echo "Running Alembic migrations..."
 alembic upgrade head
 
-echo "Migrations completed successfully"
-
-echo "Starting FastAPI application..."
-exec uvicorn main:app --host 0.0.0.0 --port 8000
+echo "Starting FastAPI..."
+exec uvicorn main:app --host 0.0.0.0 --port 8000 --log-level debug

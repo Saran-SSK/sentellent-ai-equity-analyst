@@ -1,27 +1,18 @@
 services:
-  # PostgreSQL Database Service
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16
     container_name: sentellent-postgres
+    environment:
+      POSTGRES_DB: sentellent
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Postgres123
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Postgres123
-      - POSTGRES_DB=sentellent
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
     networks:
       - sentellent-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d sentellent"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
 
-  # FastAPI Backend Service
   backend:
     build:
       context: ./backend
@@ -33,7 +24,7 @@ services:
       - backend/.env
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql+psycopg2://postgres:Postgres123@postgres:5432/sentellent
+      - DATABASE_URL=postgresql+psycopg2://postgres:Postgres123@host.docker.internal:5432/sentellent
     restart: unless-stopped
     networks:
       - sentellent-network
@@ -46,7 +37,6 @@ services:
       retries: 3
       start_period: 40s
 
-  # Next.js Frontend Service
   frontend:
     build:
       context: ./frontend
@@ -57,7 +47,6 @@ services:
     env_file:
       - frontend/.env
     environment:
-      - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://backend:8000
     restart: unless-stopped
     networks:
@@ -74,9 +63,7 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
 
 networks:
-  # Custom bridge network for inter-service communication
   sentellent-network:
     driver: bridge

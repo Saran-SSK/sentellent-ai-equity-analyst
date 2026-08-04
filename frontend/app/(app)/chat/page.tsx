@@ -54,7 +54,7 @@ export default function ChatPage() {
 
     try {
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const response = await fetch(`${backendUrl}/api/v1/chat`, {
+      const response = await fetch(`${backendUrl}/api/v1/chat/`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({

@@ -33,6 +33,7 @@ COPY requirements.txt .
 # --upgrade pip: Ensure pip is up to date
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip && \
+    pip install --index-url https://download.pytorch.org/whl/cpu torch==2.13.0 && \
     pip install -r requirements.txt
 
 # Create a non-root user for security

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -14,6 +15,8 @@ from app.api.v1.auth import get_current_user
 from app.models.user import User
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.chat_service import ChatService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Chat"])
 
@@ -44,11 +47,19 @@ async def ask_question(
         Depends(get_equity_analyst_agent),
     ],
 ) -> ChatResponse:
-    """Ask the equity analyst assistant a question about a company."""
+    logger.info("========== CHAT ROUTE ENTERED ==========")
+    logger.info("Company: %s", request.company)
+    logger.info("Question: %s", request.question)
+
     chat_service = ChatService(
         context_builder,
         memory_extractor,
         investor_profile_service,
         equity_analyst_agent,
     )
-    return await chat_service.ask(request, current_user.id)
+
+    logger.info("Creating ChatService complete")
+    result = await chat_service.ask(request, current_user.id)
+    logger.info("ChatService returned successfully")
+
+    return result

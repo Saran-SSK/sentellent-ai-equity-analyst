@@ -26,3 +26,16 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Terraform logs / local files
+terraform/backend_logs.txt
+
+# Temporary debug files
+*.diff
+taskdef*.json

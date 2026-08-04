@@ -16,11 +16,11 @@ export default function AuthCallbackPage() {
     const exchangeTokenWithBackend = async () => {
       try {
         console.log("[Callback] Starting token exchange with backend")
-        
+
         // Get the backend API URL from environment variable
         const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
         console.log("[Callback] Backend URL:", backendUrl)
-        
+
         // Get the session to retrieve the ID token
         const response = await fetch("/api/auth/session")
         const sessionData = await response.json()
@@ -29,7 +29,7 @@ export default function AuthCallbackPage() {
 
         if (sessionData?.id_token) {
           console.log("[Callback] Sending ID token to backend")
-          
+
           // Send ID token to backend for verification and JWT issuance
           const backendResponse = await fetch(
             `${backendUrl}/api/v1/auth/google`,
@@ -50,11 +50,11 @@ export default function AuthCallbackPage() {
           if (backendResponse.ok) {
             const data = await backendResponse.json()
             console.log("[Callback] Backend response body:", data)
-            
+
             // Store the backend JWT token
             localStorage.setItem("access_token", data.access_token)
             console.log("[Callback] JWT stored in localStorage successfully")
-            
+
             // Redirect to dashboard
             console.log("[Callback] Redirecting to dashboard")
             router.push("/dashboard")
@@ -81,7 +81,7 @@ export default function AuthCallbackPage() {
     if (!session) {
       console.log("[Callback] No session, redirecting to sign-in")
       // No session, redirect to sign-in
-      router.push("/auth/signin")
+      router.push("/signin")
       return
     }
 
@@ -98,7 +98,7 @@ export default function AuthCallbackPage() {
             <p className="text-sm text-red-800">{error}</p>
           </div>
           <button
-            onClick={() => router.push("/auth/signin")}
+            onClick={() => router.push("/signin")}
             className="w-full rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           >
             Back to Sign In
